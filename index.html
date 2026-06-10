@@ -215,9 +215,8 @@
           <span class="post-date">${art.date}</span>
           <span class="read-time">${rt} lectura</span>
         </div>
-        <h2 class="post-title"><a href="${id}">${art.title}</a></h2>
-        <p class="post-excerpt">${excerpt}</p>
-        <a href="${id}" class="read-more">Leer análisis completo</a>
+        <h2 class="post-title"><a href="articles.html?id=${id}">${art.title}</a></h2>
+<a href="articles.html?id=${id}" class="read-more">Leer análisis completo</a>
       `;
       container.appendChild(el);
     });
