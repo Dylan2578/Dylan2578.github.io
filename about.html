@@ -93,11 +93,11 @@
   const btt = document.getElementById("backToTop");
   window.addEventListener("scroll", () => btt.classList.toggle("visible", window.scrollY > 400), { passive: true });
   btt.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  // Theme
   const html = document.documentElement;
   const btn  = document.getElementById('themeToggle');
   const s    = localStorage.getItem('np-theme') || 'light';
-  html.dataset.theme = s;
-  btn.textContent = s === 'dark' ? '☀' : '☽';
+  html.dataset.theme = s; btn.textContent = s === 'dark' ? '☀' : '☽';
   btn.addEventListener('click', () => {
     const n = html.dataset.theme === 'dark' ? 'light' : 'dark';
     html.dataset.theme = n; localStorage.setItem('np-theme', n);
