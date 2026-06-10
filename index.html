@@ -22,7 +22,7 @@
         </div>
       </div>
       <div class="brand">
-        <h1>Nomos &amp; Praxis</h1>
+        <h1>Nomos & Praxis</h1>
         <div class="brand-divider"><span class="brand-latin">Lex et Intellectus</span></div>
       </div>
       <nav class="main-nav">
@@ -58,7 +58,7 @@
       <div class="search-widget">
         <span class="widget-label">Buscar en el archivo</span>
         <div class="search-input-wrap">
-          <input type="text" id="article-search" placeholder="Título, categoría…" autocomplete="off">
+          <input type="text" id="article-search" placeholder="Título, categoría, tags…" autocomplete="off">
           <span class="search-icon">⌕</span>
         </div>
       </div>
@@ -101,11 +101,10 @@
         <a href="#">Publicidad</a>
         <a href="#">Términos de Servicio</a>
       </div>
-      <p class="footer-copy">&copy; 2026 Nomos &amp; Praxis. Todos los derechos reservados. | Publicación de Investigación y Doctrina</p>
+      <p class="footer-copy">&copy; 2026 Nomos & Praxis. Todos los derechos reservados. | Publicación de Investigación y Doctrina</p>
     </div>
   </footer>
 
-  <!-- Back to top -->
   <button class="back-to-top" id="backToTop" aria-label="Volver arriba">↑</button>
 
   <script>
@@ -134,8 +133,8 @@
     return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
   }
 
-  function readingTime(html) {
-    const words = html.replace(/<[^>]*>/g, '').split(/\s+/).length;
+  function readingTime(content) {
+    const words = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const mins = Math.max(1, Math.round(words / 220));
     return `${mins} min`;
   }
@@ -147,8 +146,7 @@
     return new Date(+m[3], months[m[2].toLowerCase()] ?? 0, +m[1]);
   }
 
-  // ── URL State (History API) ───────────────────────────────
-  // Parse state from URL hash: #cat=Derecho+Civil&q=keyword&p=2&sort=date-asc
+  // ── URL State ───────────────────────────────────────────────
   function getStateFromHash() {
     const hash = window.location.hash.slice(1);
     if (!hash) return {};
@@ -166,11 +164,11 @@
     if (q)    parts.push('q=' + encodeURIComponent(q));
     if (page && page > 1) parts.push('p=' + page);
     if (sort && sort !== 'date-desc') parts.push('sort=' + encodeURIComponent(sort));
-    const hash = parts.length ? '#' + parts.join('&') : window.location.pathname;
-    window.history.pushState({ cat, q, page, sort }, '', parts.length ? '#' + parts.join('&') : '#');
+    const hash = parts.length ? '#' + parts.join('&') : '';
+    window.history.pushState({ cat, q, page, sort }, '', hash);
   }
 
-  // ── Feed ──────────────────────────────────────────────────
+  // ── Feed Logic ───────────────────────────────────────────
   const ARTICLES_PER_PAGE = 4;
   let allArticles = [];
   let filteredArticles = [];
@@ -183,7 +181,7 @@
   const searchInput = document.getElementById('article-search');
   const feedCount   = document.getElementById('feed-count');
 
-  function renderArticles(items, page, skipPushState) {
+  function renderArticles(items, page, skipPushState = false) {
     currentPage = page;
     container.innerHTML = '';
 
@@ -235,35 +233,34 @@
     const prev = document.createElement('a');
     prev.className = 'page-link' + (currentPage === 1 ? ' disabled' : '');
     prev.textContent = '← Anterior';
-    prev.addEventListener('click', () => {
+    prev.onclick = () => {
       if (currentPage > 1) {
         renderArticles(filteredArticles, currentPage - 1);
         window.scrollTo({top:0,behavior:'smooth'});
       }
-    });
+    };
     pagination.appendChild(prev);
 
     for (let i = 1; i <= total; i++) {
       const btn = document.createElement('a');
       btn.className = 'page-link' + (i === currentPage ? ' active' : '');
       btn.textContent = i;
-      const p = i;
-      btn.addEventListener('click', () => {
-        renderArticles(filteredArticles, p);
+      btn.onclick = () => {
+        renderArticles(filteredArticles, i);
         window.scrollTo({top:0,behavior:'smooth'});
-      });
+      };
       pagination.appendChild(btn);
     }
 
     const next = document.createElement('a');
     next.className = 'page-link' + (currentPage === total ? ' disabled' : '');
     next.textContent = 'Siguiente →';
-    next.addEventListener('click', () => {
+    next.onclick = () => {
       if (currentPage < total) {
         renderArticles(filteredArticles, currentPage + 1);
         window.scrollTo({top:0,behavior:'smooth'});
       }
-    });
+    };
     pagination.appendChild(next);
   }
 
@@ -276,17 +273,19 @@
     });
   }
 
-  function applyFilters(skipPushState) {
+  function applyFilters(skipPushState = false) {
     const q = normalize(searchInput.value);
     const cat = activeCategory;
+
     const filtered = allArticles.filter(([, art]) => {
       const matchCat = !cat || art.category === cat;
       const matchQ   = !q || normalize(art.title).includes(q)
                           || normalize(art.content.replace(/<[^>]*>/g,'')).includes(q)
                           || normalize(art.category).includes(q)
-                          || (art.tags || []).some(tag => normalize(tag).includes(q));
+                          || (art.tags && Array.isArray(art.tags) && art.tags.some(t => normalize(t).includes(q)));
       return matchCat && matchQ;
     });
+
     filteredArticles = sortArticles(filtered);
     renderArticles(filteredArticles, 1, skipPushState);
   }
@@ -304,33 +303,26 @@
 
   function restoreUIFromState(state) {
     const { cat = '', q = '', page = 1, sort = 'date-desc' } = state;
-    // Sort buttons
+
     sortMode = sort;
     document.querySelectorAll('.sort-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.sort === sortMode);
     });
-    // Category
+
     activeCategory = cat;
     document.querySelectorAll('.filter-category').forEach(l => {
       l.classList.toggle('active-filter', l.dataset.category === cat);
     });
-    // Search
+
     searchInput.value = q;
-    // Re-filter and render
-    const filtered = allArticles.filter(([, art]) => {
-      const matchCat = !cat || art.category === cat;
-      const nq = normalize(q);
-      const matchQ = !nq || normalize(art.title).includes(nq)
-                          || normalize(art.content.replace(/<[^>]*>/g,'')).includes(nq)
-                          || normalize(art.category).includes(nq)
-                          || (art.tags || []).some(tag => normalize(tag).includes(nq));
-      return matchCat && matchQ;
-    });
-    filteredArticles = sortArticles(filtered);
-    renderArticles(filteredArticles, parseInt(page) || 1, true); // skipPushState
+
+    // Re-aplicar filtros basados en el estado restaurado
+    applyFilters(true);
+    // Si había una página específica, volver a renderizarla
+    if (page > 1) renderArticles(filteredArticles, parseInt(page), true);
   }
 
-  // Sort buttons
+  // Events
   document.querySelectorAll('.sort-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -340,40 +332,38 @@
     });
   });
 
-  // Search
   searchInput.addEventListener('input', () => {
+    // Reset categoría al buscar para evitar resultados vacíos contradictorios
     document.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
     document.querySelector('.filter-category[data-category=""]').classList.add('active-filter');
     activeCategory = '';
     applyFilters();
   });
 
-  // Category filters
   document.querySelectorAll('.filter-category').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
       document.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
       link.classList.add('active-filter');
       activeCategory = link.dataset.category;
-      searchInput.value = '';
+      searchInput.value = ''; // Limpiar búsqueda al filtrar por categoría
       applyFilters();
     });
   });
 
-  // Browser back/forward
   window.addEventListener('popstate', () => {
     if (allArticles.length) {
       restoreUIFromState(getStateFromHash());
     }
   });
 
-  // Load articles
+  // Init
   fetch('articles.json')
     .then(r => r.json())
     .then(data => {
       allArticles = Object.entries(data);
       updateCategoryCounts(allArticles);
-      // Restore state from URL hash if present
+
       const hashState = getStateFromHash();
       if (Object.keys(hashState).length > 0) {
         restoreUIFromState(hashState);
