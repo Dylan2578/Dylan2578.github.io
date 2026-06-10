@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nomos & Praxis | Pensamiento Jurídico y Análisis Crítico</title>
+  <meta name="description" content="Nomos & Praxis — Revista de pensamiento jurídico, análisis doctrinal y estudios críticos de derecho.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -146,6 +147,29 @@
     return new Date(+m[3], months[m[2].toLowerCase()] ?? 0, +m[1]);
   }
 
+  // ── URL State (History API) ───────────────────────────────
+  // Parse state from URL hash: #cat=Derecho+Civil&q=keyword&p=2&sort=date-asc
+  function getStateFromHash() {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return {};
+    const params = {};
+    hash.split('&').forEach(part => {
+      const [k, v] = part.split('=');
+      if (k) params[decodeURIComponent(k)] = decodeURIComponent(v || '');
+    });
+    return params;
+  }
+
+  function pushState(cat, q, page, sort) {
+    const parts = [];
+    if (cat)  parts.push('cat=' + encodeURIComponent(cat));
+    if (q)    parts.push('q=' + encodeURIComponent(q));
+    if (page && page > 1) parts.push('p=' + page);
+    if (sort && sort !== 'date-desc') parts.push('sort=' + encodeURIComponent(sort));
+    const hash = parts.length ? '#' + parts.join('&') : window.location.pathname;
+    window.history.pushState({ cat, q, page, sort }, '', parts.length ? '#' + parts.join('&') : '#');
+  }
+
   // ── Feed ──────────────────────────────────────────────────
   const ARTICLES_PER_PAGE = 4;
   let allArticles = [];
@@ -159,13 +183,17 @@
   const searchInput = document.getElementById('article-search');
   const feedCount   = document.getElementById('feed-count');
 
-  function renderArticles(items, page) {
+  function renderArticles(items, page, skipPushState) {
     currentPage = page;
     container.innerHTML = '';
 
     feedCount.textContent = items.length === allArticles.length
       ? `${items.length} artículo${items.length !== 1 ? 's' : ''}`
       : `${items.length} resultado${items.length !== 1 ? 's' : ''}`;
+
+    if (!skipPushState) {
+      pushState(activeCategory, searchInput.value, page, sortMode);
+    }
 
     if (!items.length) {
       container.innerHTML = '<p class="no-results">No se encontraron artículos para esta búsqueda.</p>';
@@ -189,9 +217,9 @@
           <span class="post-date">${art.date}</span>
           <span class="read-time">${rt} lectura</span>
         </div>
-        <h2 class="post-title"><a href="articles.html?id=${id}">${art.title}</a></h2>
+        <h2 class="post-title"><a href="${id}">${art.title}</a></h2>
         <p class="post-excerpt">${excerpt}</p>
-        <a href="articles.html?id=${id}" class="read-more">Leer análisis completo</a>
+        <a href="${id}" class="read-more">Leer análisis completo</a>
       `;
       container.appendChild(el);
     });
@@ -207,7 +235,12 @@
     const prev = document.createElement('a');
     prev.className = 'page-link' + (currentPage === 1 ? ' disabled' : '');
     prev.textContent = '← Anterior';
-    prev.addEventListener('click', () => { if (currentPage > 1) { renderArticles(filteredArticles, currentPage - 1); window.scrollTo({top:0,behavior:'smooth'}); }});
+    prev.addEventListener('click', () => {
+      if (currentPage > 1) {
+        renderArticles(filteredArticles, currentPage - 1);
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+    });
     pagination.appendChild(prev);
 
     for (let i = 1; i <= total; i++) {
@@ -215,14 +248,22 @@
       btn.className = 'page-link' + (i === currentPage ? ' active' : '');
       btn.textContent = i;
       const p = i;
-      btn.addEventListener('click', () => { renderArticles(filteredArticles, p); window.scrollTo({top:0,behavior:'smooth'}); });
+      btn.addEventListener('click', () => {
+        renderArticles(filteredArticles, p);
+        window.scrollTo({top:0,behavior:'smooth'});
+      });
       pagination.appendChild(btn);
     }
 
     const next = document.createElement('a');
     next.className = 'page-link' + (currentPage === total ? ' disabled' : '');
     next.textContent = 'Siguiente →';
-    next.addEventListener('click', () => { if (currentPage < total) { renderArticles(filteredArticles, currentPage + 1); window.scrollTo({top:0,behavior:'smooth'}); }});
+    next.addEventListener('click', () => {
+      if (currentPage < total) {
+        renderArticles(filteredArticles, currentPage + 1);
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+    });
     pagination.appendChild(next);
   }
 
@@ -235,18 +276,19 @@
     });
   }
 
-  function applyFilters() {
+  function applyFilters(skipPushState) {
     const q = normalize(searchInput.value);
     const cat = activeCategory;
     const filtered = allArticles.filter(([, art]) => {
       const matchCat = !cat || art.category === cat;
       const matchQ   = !q || normalize(art.title).includes(q)
                           || normalize(art.content.replace(/<[^>]*>/g,'')).includes(q)
-                          || normalize(art.category).includes(q);
+                          || normalize(art.category).includes(q)
+                          || (art.tags || []).some(tag => normalize(tag).includes(q));
       return matchCat && matchQ;
     });
     filteredArticles = sortArticles(filtered);
-    renderArticles(filteredArticles, 1);
+    renderArticles(filteredArticles, 1, skipPushState);
   }
 
   function updateCategoryCounts(articles) {
@@ -258,6 +300,34 @@
       const badge = link.querySelector('.cat-count');
       if (badge) badge.textContent = n || 0;
     });
+  }
+
+  function restoreUIFromState(state) {
+    const { cat = '', q = '', page = 1, sort = 'date-desc' } = state;
+    // Sort buttons
+    sortMode = sort;
+    document.querySelectorAll('.sort-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.sort === sortMode);
+    });
+    // Category
+    activeCategory = cat;
+    document.querySelectorAll('.filter-category').forEach(l => {
+      l.classList.toggle('active-filter', l.dataset.category === cat);
+    });
+    // Search
+    searchInput.value = q;
+    // Re-filter and render
+    const filtered = allArticles.filter(([, art]) => {
+      const matchCat = !cat || art.category === cat;
+      const nq = normalize(q);
+      const matchQ = !nq || normalize(art.title).includes(nq)
+                          || normalize(art.content.replace(/<[^>]*>/g,'')).includes(nq)
+                          || normalize(art.category).includes(nq)
+                          || (art.tags || []).some(tag => normalize(tag).includes(nq));
+      return matchCat && matchQ;
+    });
+    filteredArticles = sortArticles(filtered);
+    renderArticles(filteredArticles, parseInt(page) || 1, true); // skipPushState
   }
 
   // Sort buttons
@@ -290,14 +360,27 @@
     });
   });
 
+  // Browser back/forward
+  window.addEventListener('popstate', () => {
+    if (allArticles.length) {
+      restoreUIFromState(getStateFromHash());
+    }
+  });
+
   // Load articles
   fetch('articles.json')
     .then(r => r.json())
     .then(data => {
       allArticles = Object.entries(data);
-      filteredArticles = sortArticles(allArticles);
       updateCategoryCounts(allArticles);
-      renderArticles(filteredArticles, 1);
+      // Restore state from URL hash if present
+      const hashState = getStateFromHash();
+      if (Object.keys(hashState).length > 0) {
+        restoreUIFromState(hashState);
+      } else {
+        filteredArticles = sortArticles(allArticles);
+        renderArticles(filteredArticles, 1, true);
+      }
     })
     .catch(() => {
       container.innerHTML = '<p class="no-results">Error al cargar los artículos.</p>';
