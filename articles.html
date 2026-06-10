@@ -43,7 +43,7 @@
         <h1 id="art-title">Cargando artículo…</h1>
         <div class="article-meta">
           <span>📅 <span id="art-date">—</span></span>
-          <span>✍ Nomos &amp; Praxis</span>
+          <span>✍ <span id="art-authors">—</span></span>
           <span id="art-readtime">—</span>
         </div>
       </header>
@@ -86,83 +86,49 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-  // Theme
-  const html = document.documentElement;
+  // ── Theme ─────────────────────────────────────────────────
+  const html     = document.documentElement;
   const themeBtn = document.getElementById('themeToggle');
-  const saved = localStorage.getItem('np-theme') || 'light';
-  html.dataset.theme = saved;
+  const saved    = localStorage.getItem('np-theme') || 'light';
+  html.dataset.theme   = saved;
   themeBtn.textContent = saved === 'dark' ? '☀' : '☽';
   themeBtn.addEventListener('click', () => {
     const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
-    html.dataset.theme = next;
+    html.dataset.theme   = next;
     localStorage.setItem('np-theme', next);
     themeBtn.textContent = next === 'dark' ? '☀' : '☽';
   });
 
-  // Back to top
+  // ── Back to top ───────────────────────────────────────────
   const btt = document.getElementById('backToTop');
   window.addEventListener('scroll', () => {
     btt.classList.toggle('visible', window.scrollY > 400);
   }, { passive: true });
   btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-  // Reading progress
+  // ── Reading progress ──────────────────────────────────────
   const progressBar = document.getElementById('readingProgress');
   window.addEventListener('scroll', () => {
     const article = document.getElementById('art-content');
     if (!article) return;
-    const rect   = article.getBoundingClientRect();
-    const total  = article.offsetHeight - window.innerHeight;
-    const scrolled = Math.max(0, -rect.top);
-    const pct = total > 0 ? Math.min(100, (scrolled / total) * 100) : 0;
+    const total    = article.offsetHeight - window.innerHeight;
+    const scrolled = Math.max(0, -article.getBoundingClientRect().top);
+    const pct      = total > 0 ? Math.min(100, (scrolled / total) * 100) : 0;
     progressBar.style.width = pct + '%';
   }, { passive: true });
 
-  // Reading time
+  // ── Reading time ──────────────────────────────────────────
   function readingTime(content) {
     const words = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const mins  = Math.max(1, Math.round(words / 220));
     return `${mins} min de lectura`;
   }
 
-  // Article loader
-  document.addEventListener('DOMContentLoaded', () => {
-    const params    = new URLSearchParams(window.location.search);
-    const articleId = params.get('id');
-    if (!articleId) { window.location.href = 'index.html'; return; }
-
-    fetch('articles.json')
-      .then(r => r.json())
-      .then(data => {
-        const article = data[articleId];
-        if (article) {
-          document.getElementById('art-title').textContent    = article.title;
-          document.getElementById('art-date').textContent     = article.date;
-          document.getElementById('art-category').textContent = article.category;
-          document.getElementById('art-readtime').textContent = readingTime(article.content);
-          document.title = `Nomos & Praxis | ${article.title}`;
-
-          const contentEl  = document.getElementById('art-content');
-          const isMarkdown = !article.content.trim().startsWith('<');
-          contentEl.innerHTML = isMarkdown
-            ? (typeof marked !== 'undefined' ? marked.parse(article.content) : article.content)
-            : article.content;
-
-          buildTOC(contentEl);
-        } else {
-          document.getElementById('art-title').textContent = 'Artículo no encontrado';
-          document.getElementById('art-content').innerHTML = '<p>El artículo solicitado no existe en nuestros archivos.</p>';
-        }
-      })
-      .catch(() => {
-        document.getElementById('art-title').textContent = 'Error al cargar';
-        document.getElementById('art-content').innerHTML = '<p>Hubo un problema técnico al cargar el contenido.</p>';
-      });
-  });
-
+  // ── TOC builder ───────────────────────────────────────────
   function buildTOC(contentEl) {
-    const headings  = contentEl.querySelectorAll('h2, h3');
+    const headings = contentEl.querySelectorAll('h2, h3');
     if (headings.length < 2) return;
+
     const tocList   = document.getElementById('toc-list');
     const tocWidget = document.getElementById('toc-widget');
     tocWidget.style.display = 'block';
@@ -178,7 +144,7 @@
       tocList.appendChild(li);
     });
 
-    // Highlight active heading
+    // Highlight active heading on scroll
     const links = tocList.querySelectorAll('a');
     window.addEventListener('scroll', () => {
       let current = '';
@@ -186,6 +152,51 @@
       links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
     }, { passive: true });
   }
+
+  // ── Article loader ────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const params    = new URLSearchParams(window.location.search);
+    const articleId = params.get('id');
+
+    if (!articleId) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // Resolve articles.json relative to the current page's directory
+    const base      = window.location.pathname.replace(/\/[^/]*$/, '/');
+    const jsonURL   = base + 'articles.json';
+
+    fetch(jsonURL)
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(data => {
+        const article = data[articleId];
+        if (!article) {
+          document.getElementById('art-title').textContent   = 'Artículo no encontrado';
+          document.getElementById('art-content').innerHTML   = '<p>El artículo solicitado no existe en nuestros archivos.</p>';
+          document.getElementById('art-category').textContent = '';
+          return;
+        }
+
+        document.getElementById('art-title').textContent    = article.title;
+        document.getElementById('art-date').textContent     = article.date;
+        document.getElementById('art-category').textContent = article.category;
+        document.getElementById('art-readtime').textContent = readingTime(article.content);
+        document.title = `Nomos & Praxis | ${article.title}`;
+
+        const contentEl  = document.getElementById('art-content');
+        const isMarkdown = !article.content.trim().startsWith('<');
+        contentEl.innerHTML = isMarkdown
+          ? (typeof marked !== 'undefined' ? marked.parse(article.content) : article.content)
+          : article.content;
+
+        buildTOC(contentEl);
+      })
+      .catch(() => {
+        document.getElementById('art-title').textContent   = 'Error al cargar';
+        document.getElementById('art-content').innerHTML   = '<p>Hubo un problema técnico al cargar el contenido. Comprueba que <code>articles.json</code> está en el mismo directorio que esta página.</p>';
+      });
+  });
   </script>
 </body>
 </html>

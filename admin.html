@@ -635,6 +635,7 @@
       row.innerHTML = `
         <div class="art-info">
           <span class="art-category">${art.category||'—'}</span>
+          <div class="art-author">${art.author||'—'}</div>
           <div class="art-title">${art.title}</div>
           <div class="art-meta">
             <span>📅 ${art.date||'—'}</span>
@@ -660,6 +661,7 @@
       document.getElementById('fDate').value     = isoDate(a.date);
       document.getElementById('fSlug').value     = id;
       document.getElementById('fContent').value  = a.content  || '';
+      document.getElementById('fAuthor').value   = a.author   || '';
       updateCharCount(); updatePreview();
     } else {
       document.getElementById('fTitle').value    = '';
