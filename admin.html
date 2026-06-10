@@ -317,6 +317,11 @@
           <label for="fDate">Fecha de publicación *</label>
           <input type="date" id="fDate">
         </div>
+          </div>
+        <div class="form-group full">
+          <label for="fAuthor">Autor *</label>
+          <input type="text" id="fAuthor" placeholder="Ej. Juan Pérez">
+        </div>
         <div class="form-group full">
           <label for="fSlug">Slug (ID en la URL) *</label>
           <input type="text" id="fSlug" placeholder="Ej. analisis-fiscal-2025">
@@ -435,6 +440,7 @@
         "Analisis-fiscal-2024": {
           title: "Análisis Fiscal 2024: Perspectivas y Retos",
           date: "6 de junio, 2026",
+          author: "Juan Pérez",
           category: "Derecho Constitucional y Administrativo",
           content: "<p>El año 2024 ha traído consigo una serie de cambios significativos en el ámbito fiscal, tanto a nivel nacional como internacional.</p>"
         }
@@ -669,6 +675,7 @@
       document.getElementById('fDate').value     = new Date().toISOString().slice(0,10);
       document.getElementById('fSlug').value     = '';
       document.getElementById('fContent').value  = '';
+      document.getElementById('fAuthor').value   = '';
       document.getElementById('charCount').textContent = '0';
       document.getElementById('previewExcerpt').textContent = '—';
     }
@@ -685,14 +692,15 @@
     const title    = document.getElementById('fTitle').value.trim();
     const category = document.getElementById('fCategory').value;
     const date     = document.getElementById('fDate').value;
+    const author   = document.getElementById('fAuthor').value.trim();
     const slug     = document.getElementById('fSlug').value.trim();
     const content  = document.getElementById('fContent').value.trim();
-    if (!title || !category || !date || !slug || !content) { toast('Rellene todos los campos obligatorios.','danger'); return; }
+    if (!title || !category || !date || !author || !slug || !content) { toast('Rellene todos los campos obligatorios.','danger'); return; }
     if (!/^[a-zA-Z0-9-]+$/.test(slug)) { toast('El slug solo puede contener letras, números y guiones.','danger'); return; }
     if (!editingId && articles[slug]) { toast('Ya existe un artículo con ese slug.','danger'); return; }
     const oldId = editingId;
     if (oldId && oldId !== slug) delete articles[oldId];
-    articles[slug] = { title, category, date: formatDate(date), content };
+    articles[slug] = { title, category, date: formatDate(date), author, content };
     persist();
     closeEditor();
     toast((oldId ? 'Artículo actualizado.' : 'Artículo guardado.') + ' Pulse "Publicar cambios" para enviarlo a GitHub.', 'info');

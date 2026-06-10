@@ -182,6 +182,7 @@
         document.getElementById('art-date').textContent     = article.date;
         document.getElementById('art-category').textContent = article.category;
         document.getElementById('art-readtime').textContent = readingTime(article.content);
+        document.getElementById('art-authors').textContent  = article.author || '';
         document.title = `Nomos & Praxis | ${article.title}`;
 
         const contentEl  = document.getElementById('art-content');
