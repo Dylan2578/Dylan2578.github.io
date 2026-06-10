@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nomos & Praxis | Pensamiento Jurídico y Análisis Crítico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>!function(){var t=localStorage.getItem("np-theme")||"light";document.documentElement.dataset.theme=t;}();</script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-topbar container" style="padding-left:0;padding-right:0;width:100%;">
+        <span class="header-tagline">Revista de Pensamiento Jurídico — Fundada 2024</span>
+        <div class="header-utils">
+          <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">☽</button>
+        </div>
+      </div>
+      <div class="brand">
+        <h1>Nomos &amp; Praxis</h1>
+        <div class="brand-divider"><span class="brand-latin">Lex et Intellectus</span></div>
+      </div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link active">Inicio</a>
+        <a href="about.html" class="nav-link">Sobre el Proyecto</a>
+        <a href="practice-areas.html" class="nav-link">Áreas de Práctica</a>
+        <a href="contact.html" class="nav-link">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-wrapper">
+    <section class="feed">
+      <div class="feed-heading">
+        <span class="feed-heading-text">Últimas Publicaciones</span>
+        <span class="feed-count" id="feed-count"></span>
+      </div>
+
+      <!-- Sort bar -->
+      <div class="sort-bar">
+        <span>Ordenar:</span>
+        <button class="sort-btn active" data-sort="date-desc">Más reciente</button>
+        <button class="sort-btn" data-sort="date-asc">Más antiguo</button>
+        <button class="sort-btn" data-sort="alpha">A–Z</button>
+      </div>
+
+      <div id="articles-grid">
+        <div class="articles-loading">Cargando archivo<div class="loading-bar"></div></div>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <!-- Search -->
+      <div class="search-widget">
+        <span class="widget-label">Buscar en el archivo</span>
+        <div class="search-input-wrap">
+          <input type="text" id="article-search" placeholder="Título, categoría…" autocomplete="off">
+          <span class="search-icon">⌕</span>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div class="widget">
+        <h3 class="widget-title">Categorías</h3>
+        <ul class="widget-list" id="category-list">
+          <li><a href="#" class="filter-category active-filter" data-category="">Todas las áreas <span class="cat-count" id="cat-all">—</span></a></li>
+          <li><a href="#" class="filter-category" data-category="Derecho Civil y Mercantil">Civil y Mercantil <span class="cat-count"></span></a></li>
+          <li><a href="#" class="filter-category" data-category="Derecho Digital y Tecnología">Digital y Tecnología <span class="cat-count"></span></a></li>
+          <li><a href="#" class="filter-category" data-category="Derecho Financiero y Tributario">Financiero y Tributario <span class="cat-count"></span></a></li>
+          <li><a href="#" class="filter-category" data-category="Derecho Laboral">Laboral <span class="cat-count"></span></a></li>
+          <li><a href="#" class="filter-category" data-category="Derecho de la Unión Europea">Unión Europea <span class="cat-count"></span></a></li>
+          <li><a href="#" class="filter-category" data-category="Derecho Constitucional y Administrativo">Constitucional y Adm. <span class="cat-count"></span></a></li>
+        </ul>
+      </div>
+
+      <!-- Resources -->
+      <div class="widget">
+        <h3 class="widget-title">Recursos</h3>
+        <ul class="widget-list">
+          <li><a href="#">Bases de Datos Oficiales</a></li>
+          <li><a href="#">Guías Prácticas</a></li>
+          <li><a href="#">Publicaciones Académicas</a></li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <div class="pagination-wrap container">
+    <div class="pagination" id="pagination-controls"></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="#">Política de Privacidad</a>
+        <a href="#">Disclaimer</a>
+        <a href="#">Publicidad</a>
+        <a href="#">Términos de Servicio</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 Nomos &amp; Praxis. Todos los derechos reservados. | Publicación de Investigación y Doctrina</p>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="backToTop" aria-label="Volver arriba">↑</button>
+
+  <script>
+  // ── Theme ─────────────────────────────────────────────────
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('np-theme') || 'light';
+  html.dataset.theme = saved;
+  themeBtn.textContent = saved === 'dark' ? '☀' : '☽';
+  themeBtn.addEventListener('click', () => {
+    const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    html.dataset.theme = next;
+    localStorage.setItem('np-theme', next);
+    themeBtn.textContent = next === 'dark' ? '☀' : '☽';
+  });
+
+  // ── Back to top ───────────────────────────────────────────
+  const btt = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    btt.classList.toggle('visible', window.scrollY > 400);
+  }, { passive: true });
+  btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // ── Helpers ───────────────────────────────────────────────
+  function normalize(t) {
+    return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  }
+
+  function readingTime(html) {
+    const words = html.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const mins = Math.max(1, Math.round(words / 220));
+    return `${mins} min`;
+  }
+
+  function parseDate(str) {
+    const months = { enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11 };
+    const m = str.match(/(\d+)\s+de\s+(\w+),?\s+(\d{4})/i);
+    if (!m) return new Date(0);
+    return new Date(+m[3], months[m[2].toLowerCase()] ?? 0, +m[1]);
+  }
+
+  // ── Feed ──────────────────────────────────────────────────
+  const ARTICLES_PER_PAGE = 4;
+  let allArticles = [];
+  let filteredArticles = [];
+  let currentPage = 1;
+  let activeCategory = '';
+  let sortMode = 'date-desc';
+
+  const container   = document.getElementById('articles-grid');
+  const pagination  = document.getElementById('pagination-controls');
+  const searchInput = document.getElementById('article-search');
+  const feedCount   = document.getElementById('feed-count');
+
+  function renderArticles(items, page) {
+    currentPage = page;
+    container.innerHTML = '';
+
+    feedCount.textContent = items.length === allArticles.length
+      ? `${items.length} artículo${items.length !== 1 ? 's' : ''}`
+      : `${items.length} resultado${items.length !== 1 ? 's' : ''}`;
+
+    if (!items.length) {
+      container.innerHTML = '<p class="no-results">No se encontraron artículos para esta búsqueda.</p>';
+      pagination.innerHTML = '';
+      return;
+    }
+
+    const start = (page - 1) * ARTICLES_PER_PAGE;
+    const slice = items.slice(start, start + ARTICLES_PER_PAGE);
+
+    slice.forEach(([id, art], i) => {
+      const clean   = art.content.replace(/<[^>]*>/g, '');
+      const excerpt = clean.length > 240 ? clean.slice(0, 240) + '…' : clean;
+      const rt      = readingTime(art.content);
+      const el      = document.createElement('article');
+      el.className  = 'legal-post';
+      el.style.animationDelay = `${i * 0.08}s`;
+      el.innerHTML = `
+        <div class="post-header">
+          <span class="category-badge">${art.category}</span>
+          <span class="post-date">${art.date}</span>
+          <span class="read-time">${rt} lectura</span>
+        </div>
+        <h2 class="post-title"><a href="articles.html?id=${id}">${art.title}</a></h2>
+        <p class="post-excerpt">${excerpt}</p>
+        <a href="articles.html?id=${id}" class="read-more">Leer análisis completo</a>
+      `;
+      container.appendChild(el);
+    });
+
+    renderPagination(items);
+  }
+
+  function renderPagination(items) {
+    pagination.innerHTML = '';
+    const total = Math.ceil(items.length / ARTICLES_PER_PAGE);
+    if (total <= 1) return;
+
+    const prev = document.createElement('a');
+    prev.className = 'page-link' + (currentPage === 1 ? ' disabled' : '');
+    prev.textContent = '← Anterior';
+    prev.addEventListener('click', () => { if (currentPage > 1) { renderArticles(filteredArticles, currentPage - 1); window.scrollTo({top:0,behavior:'smooth'}); }});
+    pagination.appendChild(prev);
+
+    for (let i = 1; i <= total; i++) {
+      const btn = document.createElement('a');
+      btn.className = 'page-link' + (i === currentPage ? ' active' : '');
+      btn.textContent = i;
+      const p = i;
+      btn.addEventListener('click', () => { renderArticles(filteredArticles, p); window.scrollTo({top:0,behavior:'smooth'}); });
+      pagination.appendChild(btn);
+    }
+
+    const next = document.createElement('a');
+    next.className = 'page-link' + (currentPage === total ? ' disabled' : '');
+    next.textContent = 'Siguiente →';
+    next.addEventListener('click', () => { if (currentPage < total) { renderArticles(filteredArticles, currentPage + 1); window.scrollTo({top:0,behavior:'smooth'}); }});
+    pagination.appendChild(next);
+  }
+
+  function sortArticles(arr) {
+    return [...arr].sort(([, a], [, b]) => {
+      if (sortMode === 'date-desc') return parseDate(b.date) - parseDate(a.date);
+      if (sortMode === 'date-asc')  return parseDate(a.date) - parseDate(b.date);
+      if (sortMode === 'alpha')     return a.title.localeCompare(b.title, 'es');
+      return 0;
+    });
+  }
+
+  function applyFilters() {
+    const q = normalize(searchInput.value);
+    const cat = activeCategory;
+    const filtered = allArticles.filter(([, art]) => {
+      const matchCat = !cat || art.category === cat;
+      const matchQ   = !q || normalize(art.title).includes(q)
+                          || normalize(art.content.replace(/<[^>]*>/g,'')).includes(q)
+                          || normalize(art.category).includes(q);
+      return matchCat && matchQ;
+    });
+    filteredArticles = sortArticles(filtered);
+    renderArticles(filteredArticles, 1);
+  }
+
+  function updateCategoryCounts(articles) {
+    document.getElementById('cat-all').textContent = articles.length;
+    document.querySelectorAll('.filter-category[data-category]').forEach(link => {
+      const cat = link.dataset.category;
+      if (!cat) return;
+      const n = articles.filter(([,a]) => a.category === cat).length;
+      const badge = link.querySelector('.cat-count');
+      if (badge) badge.textContent = n || 0;
+    });
+  }
+
+  // Sort buttons
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sortMode = btn.dataset.sort;
+      applyFilters();
+    });
+  });
+
+  // Search
+  searchInput.addEventListener('input', () => {
+    document.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
+    document.querySelector('.filter-category[data-category=""]').classList.add('active-filter');
+    activeCategory = '';
+    applyFilters();
+  });
+
+  // Category filters
+  document.querySelectorAll('.filter-category').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
+      link.classList.add('active-filter');
+      activeCategory = link.dataset.category;
+      searchInput.value = '';
+      applyFilters();
+    });
+  });
+
+  // Load articles
+  fetch('articles.json')
+    .then(r => r.json())
+    .then(data => {
+      allArticles = Object.entries(data);
+      filteredArticles = sortArticles(allArticles);
+      updateCategoryCounts(allArticles);
+      renderArticles(filteredArticles, 1);
+    })
+    .catch(() => {
+      container.innerHTML = '<p class="no-results">Error al cargar los artículos.</p>';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración | Nomos &amp; Praxis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:        #0f1f3d;
+      --navy-mid:    #1a2b4c;
+      --navy-light:  #243455;
+      --gold:        #c9a86c;
+      --gold-dim:    #a07c43;
+      --gold-pale:   #f5edd9;
+      --cream:       #faf8f3;
+      --white:       #ffffff;
+      --ink:         #1c1c1c;
+      --ink-mid:     #3d3d3d;
+      --ink-muted:   #7a7a7a;
+      --border:      #e0d9cc;
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Crimson Pro', Georgia, serif;
+      --font-ui:      'DM Sans', sans-serif;
+      --radius: 2px;
+      --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+      --bg-body:    var(--cream);
+      --bg-card:    var(--white);
+      --text-main:  var(--ink);
+      --text-muted: var(--ink-muted);
+      --border-color: var(--border);
+      --shadow-card: 0 2px 16px rgba(15,31,61,.06);
+    }
+    [data-theme="dark"] {
+      --bg-body:    #0d1726;
+      --bg-card:    #111e33;
+      --navy:       #c9a86c;
+      --navy-mid:   #1e2f4a;
+      --gold:       #c9a86c;
+      --gold-pale:  #1a2c44;
+      --text-main:  #e8e2d6;
+      --text-muted: #8a9ab8;
+      --border-color: #1e3052;
+      --ink:        #e8e2d6;
+      --ink-mid:    #c5bfb4;
+      --ink-muted:  #7a8ca8;
+      --cream:      #0d1726;
+      --white:      #111e33;
+      --shadow-card: 0 2px 16px rgba(0,0,0,.25);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-ui); background-color: var(--bg-body); color: var(--text-main); line-height: 1.6; -webkit-font-smoothing: antialiased; transition: background-color 0.35s ease, color 0.35s ease; min-height: 100vh; }
+
+    /* HEADER */
+    .site-header { background: linear-gradient(180deg, #08111f 0%, #0f1f3d 60%, #1a2b4c 100%); border-bottom: 2px solid var(--gold); padding: 1.5rem 0 0; }
+    .header-inner { display: flex; flex-direction: column; align-items: center; }
+    .header-topbar { width: 100%; max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem 0.8rem; border-bottom: 1px solid rgba(201,168,108,.15); margin-bottom: 1.2rem; }
+    .header-tagline { font-size: 0.65rem; font-weight: 500; text-transform: uppercase; letter-spacing: 3px; color: rgba(201,168,108,.5); }
+    .brand { text-align: center; padding-bottom: 1.2rem; }
+    .brand h1 { font-family: var(--font-display); font-size: 2.8rem; font-weight: 700; color: var(--gold); }
+    .brand-sub { font-size: 0.6rem; color: rgba(201,168,108,.5); text-transform: uppercase; letter-spacing: 3px; margin-top: 0.4rem; }
+    .header-utils { display: flex; align-items: center; gap: 1rem; }
+    .theme-toggle { background: none; border: 1px solid rgba(201,168,108,.3); color: rgba(201,168,108,.6); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 0.85rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; }
+    .theme-toggle:hover { background: rgba(201,168,108,.12); border-color: var(--gold); color: var(--gold); }
+    .back-link { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: rgba(201,168,108,.5); text-decoration: none; transition: var(--transition); }
+    .back-link:hover { color: var(--gold); }
+
+    /* LOGIN */
+    .login-wrap { min-height: calc(100vh - 160px); display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .login-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 3rem 2.5rem; width: 100%; max-width: 420px; box-shadow: var(--shadow-card); }
+    .login-card h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--navy); margin-bottom: 0.4rem; }
+    [data-theme="dark"] .login-card h2 { color: var(--gold); }
+    .login-card p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; font-style: italic; }
+
+    /* LAYOUT */
+    .admin-layout { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; display: grid; grid-template-columns: 300px 1fr; gap: 3rem; align-items: start; }
+
+    /* SIDEBAR */
+    .admin-sidebar { position: sticky; top: 2rem; }
+    .sidebar-section { background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.8rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-card); }
+    .sidebar-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2.5px; color: var(--gold-dim); margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); position: relative; }
+    .sidebar-title::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 30px; height: 2px; background: var(--gold); }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .stat-box { text-align: center; padding: 1rem; background: var(--bg-body); border: 1px solid var(--border-color); }
+    .stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--gold); display: block; line-height: 1; }
+    .stat-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-top: 0.3rem; display: block; }
+    .cat-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+    .cat-list li { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding: 0.3rem 0; border-bottom: 1px solid var(--border-color); }
+    .cat-list li:last-child { border-bottom: none; }
+    .cat-badge { background: var(--gold-pale); color: var(--gold-dim); font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.5rem; }
+    [data-theme="dark"] .cat-badge { background: rgba(201,168,108,.15); color: var(--gold); }
+
+    /* GITHUB STATUS INDICATOR */
+    .gh-status { display: flex; align-items: center; gap: 0.6rem; font-size: 0.78rem; margin-bottom: 1rem; padding: 0.7rem 1rem; border: 1px solid var(--border-color); background: var(--bg-body); }
+    .gh-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .gh-dot.ok      { background: #3d9c6a; }
+    .gh-dot.error   { background: #c0392b; }
+    .gh-dot.pending { background: var(--gold); }
+    .gh-dot.idle    { background: var(--text-muted); }
+
+    /* PUBLISH BUTTON */
+    .btn-publish { background: #1a4e2e; color: #a8e6c1; border: 1px solid rgba(61,156,106,.4); width: 100%; justify-content: center; }
+    .btn-publish:hover:not(:disabled) { background: #22623a; border-color: #3d9c6a; color: #c8f0dc; }
+    .btn-publish:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-publish.publishing { animation: pulse-border 1.2s ease infinite; }
+    @keyframes pulse-border { 0%,100%{ border-color: rgba(61,156,106,.4); } 50%{ border-color: #3d9c6a; } }
+    [data-theme="dark"] .btn-publish { background: rgba(61,156,106,.12); color: #6fd4a0; }
+
+    /* BUTTONS */
+    .btn { font-family: var(--font-ui); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; cursor: pointer; padding: 0.7rem 1.6rem; border-radius: var(--radius); transition: var(--transition); display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+    .btn-primary { background: var(--navy-mid); color: var(--white); border: none; }
+    .btn-primary:hover { background: var(--gold-dim); transform: translateY(-1px); }
+    .btn-ghost { background: none; color: var(--text-muted); border: 1px solid var(--border-color); }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold-dim); }
+    .btn-danger { background: none; color: #c0392b; border: 1px solid rgba(192,57,43,.3); }
+    .btn-danger:hover { background: rgba(192,57,43,.07); }
+    .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.6rem; }
+    .btn-settings { background: none; border: 1px solid rgba(201,168,108,.25); color: rgba(201,168,108,.6); padding: 0.4rem 0.8rem; font-size: 0.6rem; }
+    .btn-settings:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* MAIN */
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); position: relative; }
+    .panel-header::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 40px; height: 2px; background: var(--gold); }
+    .panel-title { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2.5px; color: var(--navy-mid); }
+    [data-theme="dark"] .panel-title { color: var(--gold); }
+
+    /* ARTICLE LIST */
+    .article-list { display: flex; flex-direction: column; }
+    .article-row { padding: 1.4rem 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; }
+    .article-row:last-child { border-bottom: none; }
+    .art-info { flex: 1; min-width: 0; }
+    .art-category { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold-dim); margin-bottom: 0.35rem; display: block; }
+    .art-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.3rem; line-height: 1.3; }
+    .art-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 1rem; flex-wrap: wrap; }
+    .art-actions { display: flex; gap: 0.5rem; flex-shrink: 0; padding-top: 0.2rem; }
+    .empty-state { padding: 4rem 0; text-align: center; color: var(--text-muted); font-style: italic; font-family: var(--font-body); font-size: 1.1rem; }
+
+    /* SEARCH */
+    .search-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding: 0.8rem 1rem; background: var(--bg-card); border: 1px solid var(--border-color); }
+    .search-bar input { flex: 1; border: none; background: none; outline: none; font-family: var(--font-ui); font-size: 0.88rem; color: var(--text-main); }
+    .search-bar input::placeholder { color: var(--text-muted); }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(8,17,31,.75); z-index: 1000; overflow-y: auto; padding: 2rem; }
+    .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border-color); width: 100%; max-width: 760px; padding: 2.5rem; box-shadow: 0 24px 80px rgba(0,0,0,.3); position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+    .modal-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+    .modal-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 0.2rem; transition: var(--transition); }
+    .modal-close:hover { color: var(--text-main); }
+
+    /* FORM */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--navy-mid); }
+    [data-theme="dark"] label { color: var(--gold); }
+    input[type="text"], input[type="date"], input[type="password"], select, textarea {
+      padding: 0.75rem 1rem; background: var(--bg-body); border: 1px solid var(--border-color);
+      font-family: var(--font-body); font-size: 1rem; color: var(--text-main);
+      outline: none; transition: border-color var(--transition), box-shadow var(--transition);
+      border-radius: var(--radius); width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,108,.1); }
+    select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a86c' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+    textarea { resize: vertical; min-height: 260px; line-height: 1.7; font-size: 0.95rem; }
+    .char-hint { font-size: 0.65rem; color: var(--text-muted); text-align: right; margin-top: 0.2rem; }
+    .field-hint { font-size: 0.7rem; color: var(--text-muted); font-style: italic; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+
+    /* SETTINGS MODAL */
+    .settings-note { background: var(--bg-body); border-left: 3px solid var(--gold); padding: 1rem 1.2rem; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; margin-top: 1.2rem; }
+    .settings-note a { color: var(--gold-dim); }
+    .settings-note code { background: var(--border-color); padding: 0.1rem 0.35rem; font-size: 0.78rem; border-radius: 2px; }
+
+    /* TOAST */
+    .toast-wrap { position: fixed; bottom: 2rem; right: 2rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; }
+    .toast { background: var(--navy-mid); color: var(--white); padding: 0.9rem 1.4rem; font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600; box-shadow: 0 8px 32px rgba(0,0,0,.25); display: flex; align-items: center; gap: 0.7rem; animation: slideIn 0.3s ease; letter-spacing: 0.2px; }
+    .toast.success { border-left: 3px solid var(--gold); }
+    .toast.danger  { border-left: 3px solid #e74c3c; }
+    .toast.info    { border-left: 3px solid #3b8bd4; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* DELETE CONFIRM */
+    .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(8,17,31,.75); z-index: 1100; align-items: center; justify-content: center; padding: 2rem; }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2rem 2.5rem; max-width: 420px; width: 100%; box-shadow: 0 24px 80px rgba(0,0,0,.3); }
+    .confirm-box h3 { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 0.6rem; }
+    .confirm-box p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .confirm-actions { display: flex; justify-content: flex-end; gap: 0.8rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .admin-layout { grid-template-columns: 1fr; gap: 2rem; padding: 2rem 1.25rem; }
+      .admin-sidebar { position: static; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 8px; }
+    html { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-topbar">
+        <span class="header-tagline">Panel de Administración — Nomos &amp; Praxis</span>
+        <div class="header-utils">
+          <a href="index.html" class="back-link">← Volver al sitio</a>
+          <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">☽</button>
+        </div>
+      </div>
+      <div class="brand">
+        <h1>Nomos &amp; Praxis</h1>
+        <div class="brand-sub">Gestión de Contenidos</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-wrap">
+    <div class="login-card">
+      <h2>Acceso restringido</h2>
+      <p>Introduzca la contraseña de administración para continuar.</p>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label for="loginPassword">Contraseña</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+        <span id="loginError" style="display:none; font-size:0.72rem; color:#c0392b; margin-top:0.3rem;">Contraseña incorrecta.</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;" onclick="attemptLogin()">Entrar</button>
+      <p style="margin-top:1.2rem; font-size:0.72rem; color:var(--text-muted);">Contraseña por defecto: <code style="background:var(--bg-body); padding:0.1rem 0.4rem; border:1px solid var(--border-color);">nomos2024</code></p>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" style="display:none;">
+    <div class="admin-layout">
+
+      <!-- SIDEBAR -->
+      <aside class="admin-sidebar">
+
+        <!-- GitHub Publish -->
+        <div class="sidebar-section">
+          <div class="sidebar-title">Publicar en GitHub</div>
+          <div class="gh-status" id="ghStatus">
+            <span class="gh-dot idle" id="ghDot"></span>
+            <span id="ghStatusText">Sin configurar</span>
+          </div>
+          <button class="btn btn-publish" id="publishBtn" onclick="publishToGitHub()" disabled>
+            Publicar cambios →
+          </button>
+          <div style="margin-top:0.8rem; text-align:right;">
+            <button class="btn btn-settings" onclick="openSettings()">⚙ Configurar</button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="sidebar-section">
+          <div class="sidebar-title">Estadísticas</div>
+          <div class="stats-grid">
+            <div class="stat-box"><span class="stat-num" id="statTotal">0</span><span class="stat-label">Artículos</span></div>
+            <div class="stat-box"><span class="stat-num" id="statCats">0</span><span class="stat-label">Categorías</span></div>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="sidebar-section">
+          <div class="sidebar-title">Por Categoría</div>
+          <ul class="cat-list" id="catList"></ul>
+        </div>
+
+      </aside>
+
+      <!-- MAIN -->
+      <main class="admin-main">
+        <div class="panel-header">
+          <span class="panel-title">Archivo de Artículos</span>
+          <button class="btn btn-primary" onclick="openEditor()">+ Nuevo artículo</button>
+        </div>
+        <div class="search-bar">
+          <span style="color:var(--text-muted);">⌕</span>
+          <input type="text" id="adminSearch" placeholder="Buscar por título o categoría…" oninput="renderList()">
+        </div>
+        <div class="article-list" id="articleList"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ARTICLE EDITOR MODAL -->
+  <div class="modal-overlay" id="editorModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">Nuevo artículo</span>
+        <button class="modal-close" onclick="closeEditor()" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="fTitle">Título *</label>
+          <input type="text" id="fTitle" placeholder="Ej. Análisis Fiscal 2025: Perspectivas y Retos">
+        </div>
+        <div class="form-group">
+          <label for="fCategory">Categoría *</label>
+          <select id="fCategory">
+            <option value="">— Seleccionar —</option>
+            <option>Derecho Civil y Mercantil</option>
+            <option>Derecho Digital y Tecnología</option>
+            <option>Derecho Financiero y Tributario</option>
+            <option>Derecho Laboral</option>
+            <option>Derecho de la Unión Europea</option>
+            <option>Derecho Constitucional y Administrativo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fDate">Fecha de publicación *</label>
+          <input type="date" id="fDate">
+        </div>
+        <div class="form-group full">
+          <label for="fSlug">Slug (ID en la URL) *</label>
+          <input type="text" id="fSlug" placeholder="Ej. analisis-fiscal-2025">
+          <span class="field-hint">Solo letras, números y guiones. Se genera automáticamente desde el título.</span>
+        </div>
+        <div class="form-group full">
+          <label for="fContent">Contenido (HTML) *</label>
+          <textarea id="fContent" placeholder="<p>Escriba el contenido aquí. Se acepta HTML completo.</p>"></textarea>
+          <div class="char-hint"><span id="charCount">0</span> caracteres</div>
+        </div>
+        <div class="form-group full" style="background:var(--bg-body); border:1px solid var(--border-color); padding:1rem;">
+          <label style="margin-bottom:0.6rem; display:block;">Vista previa del extracto</label>
+          <div id="previewExcerpt" style="font-family:var(--font-body); font-size:0.95rem; color:var(--text-muted); font-style:italic; line-height:1.7; min-height:2rem;">—</div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeEditor()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveArticle()">Guardar artículo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal" style="max-width:560px;">
+      <div class="modal-header">
+        <span class="modal-title">Configuración de GitHub</span>
+        <button class="modal-close" onclick="closeSettings()" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="form-grid" style="grid-template-columns:1fr;">
+        <div class="form-group">
+          <label for="ghToken">Token de acceso personal (PAT)</label>
+          <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+          <span class="field-hint">Solo necesita el permiso <code>repo</code> (o <code>public_repo</code> si el repo es público).</span>
+        </div>
+        <div class="form-group">
+          <label for="ghOwner">Usuario u organización de GitHub</label>
+          <input type="text" id="ghOwner" placeholder="Ej. mi-usuario">
+        </div>
+        <div class="form-group">
+          <label for="ghRepo">Nombre del repositorio</label>
+          <input type="text" id="ghRepo" placeholder="Ej. nomos-praxis">
+        </div>
+        <div class="form-group">
+          <label for="ghBranch">Rama de despliegue</label>
+          <input type="text" id="ghBranch" placeholder="main" value="main">
+        </div>
+        <div class="form-group">
+          <label for="ghPath">Ruta del archivo en el repo</label>
+          <input type="text" id="ghPath" placeholder="articles.json" value="articles.json">
+        </div>
+      </div>
+      <div class="settings-note">
+        <strong>Cómo crear un token:</strong><br>
+        GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token.<br>
+        Marque solo el scope <code>public_repo</code> (repo público) o <code>repo</code> (privado). Copie el token inmediatamente, no se vuelve a mostrar.<br><br>
+        Los datos se guardan en <code>localStorage</code> de este navegador, nunca salen de su equipo salvo en la llamada a la API de GitHub.
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeSettings()">Cancelar</button>
+        <button class="btn btn-ghost" onclick="testGitHub()" id="testBtn">Probar conexión</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <h3>¿Eliminar artículo?</h3>
+      <p id="confirmMsg">Esta acción no se puede deshacer.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" onclick="cancelDelete()">Cancelar</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+  // ── CONFIG ────────────────────────────────────────────────────────────────
+  const ADMIN_PASSWORD = 'nomos2024';
+  const STORAGE_KEY    = 'np_articles';
+  const GH_CONFIG_KEY  = 'np_gh_config';
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let articles = {};
+  let editingId = null;
+  let deleteTargetId = null;
+
+  // ── LOGIN ─────────────────────────────────────────────────────────────────
+  function attemptLogin() {
+    const pw = document.getElementById('loginPassword').value;
+    if (pw === ADMIN_PASSWORD) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminPanel').style.display  = 'block';
+      loadArticles();
+      updateGhStatusUI();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginPassword').focus();
+    }
+  }
+  document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
+
+  // ── LOCAL STORAGE ─────────────────────────────────────────────────────────
+  function loadArticles() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try { articles = JSON.parse(raw); } catch { articles = {}; }
+    } else {
+      articles = {
+        "Analisis-fiscal-2024": {
+          title: "Análisis Fiscal 2024: Perspectivas y Retos",
+          date: "6 de junio, 2026",
+          category: "Derecho Constitucional y Administrativo",
+          content: "<p>El año 2024 ha traído consigo una serie de cambios significativos en el ámbito fiscal, tanto a nivel nacional como internacional.</p>"
+        }
+      };
+      persist();
+    }
+    renderStats();
+    renderList();
+  }
+
+  function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
+    renderStats();
+    renderList();
+  }
+
+  // ── GITHUB CONFIG ─────────────────────────────────────────────────────────
+  function getGhConfig() {
+    try { return JSON.parse(localStorage.getItem(GH_CONFIG_KEY)) || {}; } catch { return {}; }
+  }
+
+  function updateGhStatusUI() {
+    const cfg = getGhConfig();
+    const dot  = document.getElementById('ghDot');
+    const text = document.getElementById('ghStatusText');
+    const btn  = document.getElementById('publishBtn');
+    dot.className = 'gh-dot';
+    if (cfg.token && cfg.owner && cfg.repo) {
+      dot.classList.add('ok');
+      text.textContent = `${cfg.owner}/${cfg.repo} (${cfg.branch || 'main'})`;
+      btn.disabled = false;
+    } else {
+      dot.classList.add('idle');
+      text.textContent = 'Sin configurar — haga clic en ⚙ Configurar';
+      btn.disabled = true;
+    }
+  }
+
+  // ── SETTINGS MODAL ────────────────────────────────────────────────────────
+  function openSettings() {
+    const cfg = getGhConfig();
+    document.getElementById('ghToken').value  = cfg.token  || '';
+    document.getElementById('ghOwner').value  = cfg.owner  || '';
+    document.getElementById('ghRepo').value   = cfg.repo   || '';
+    document.getElementById('ghBranch').value = cfg.branch || 'main';
+    document.getElementById('ghPath').value   = cfg.path   || 'articles.json';
+    document.getElementById('settingsModal').classList.add('open');
+  }
+  function closeSettings() {
+    document.getElementById('settingsModal').classList.remove('open');
+  }
+  function saveSettings() {
+    const cfg = {
+      token:  document.getElementById('ghToken').value.trim(),
+      owner:  document.getElementById('ghOwner').value.trim(),
+      repo:   document.getElementById('ghRepo').value.trim(),
+      branch: document.getElementById('ghBranch').value.trim() || 'main',
+      path:   document.getElementById('ghPath').value.trim()   || 'articles.json',
+    };
+    if (!cfg.token || !cfg.owner || !cfg.repo) {
+      toast('Rellene token, usuario y repositorio.', 'danger'); return;
+    }
+    localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(cfg));
+    updateGhStatusUI();
+    closeSettings();
+    toast('Configuración guardada.', 'success');
+  }
+
+  async function testGitHub() {
+    const cfg = {
+      token:  document.getElementById('ghToken').value.trim(),
+      owner:  document.getElementById('ghOwner').value.trim(),
+      repo:   document.getElementById('ghRepo').value.trim(),
+      branch: document.getElementById('ghBranch').value.trim() || 'main',
+      path:   document.getElementById('ghPath').value.trim()   || 'articles.json',
+    };
+    if (!cfg.token || !cfg.owner || !cfg.repo) {
+      toast('Rellene los campos antes de probar.', 'danger'); return;
+    }
+    const btn = document.getElementById('testBtn');
+    btn.textContent = 'Probando…'; btn.disabled = true;
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`,
+        { headers: { Authorization: `token ${cfg.token}`, Accept: 'application/vnd.github+json' } }
+      );
+      if (res.status === 200 || res.status === 404) {
+        toast(res.status === 200 ? '✓ Conexión correcta. Archivo encontrado en el repo.' : '✓ Conexión correcta. El archivo aún no existe (se creará al publicar).', 'success');
+      } else if (res.status === 401) {
+        toast('Token inválido o sin permisos suficientes.', 'danger');
+      } else if (res.status === 404 && res.url.includes('repos')) {
+        toast('Repositorio no encontrado. Verifique usuario y nombre.', 'danger');
+      } else {
+        toast(`Error HTTP ${res.status}. Revise los datos.`, 'danger');
+      }
+    } catch {
+      toast('Error de red. Verifique su conexión.', 'danger');
+    }
+    btn.textContent = 'Probar conexión'; btn.disabled = false;
+  }
+
+  // ── PUBLISH TO GITHUB ─────────────────────────────────────────────────────
+  async function publishToGitHub() {
+    const cfg = getGhConfig();
+    if (!cfg.token || !cfg.owner || !cfg.repo) {
+      openSettings(); return;
+    }
+
+    const btn = document.getElementById('publishBtn');
+    const dot = document.getElementById('ghDot');
+    const statusText = document.getElementById('ghStatusText');
+
+    btn.disabled = true;
+    btn.classList.add('publishing');
+    btn.textContent = 'Publicando…';
+    dot.className = 'gh-dot pending';
+    statusText.textContent = 'Conectando con GitHub…';
+
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(articles, null, 2))));
+    const apiUrl  = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}`;
+    const headers = { 'Content-Type': 'application/json', Authorization: `token ${cfg.token}`, Accept: 'application/vnd.github+json' };
+
+    try {
+      // 1. Get current SHA (needed to update an existing file)
+      let sha = null;
+      statusText.textContent = 'Obteniendo versión actual…';
+      const getRes = await fetch(`${apiUrl}?ref=${cfg.branch}`, { headers });
+      if (getRes.status === 200) {
+        const data = await getRes.json();
+        sha = data.sha;
+      } else if (getRes.status !== 404) {
+        throw new Error(`Error al leer el archivo: HTTP ${getRes.status}`);
+      }
+
+      // 2. Commit the new content
+      statusText.textContent = 'Guardando archivo…';
+      const now = new Date().toLocaleString('es-ES', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const body = { message: `Actualización de artículos — ${now}`, content, branch: cfg.branch };
+      if (sha) body.sha = sha;
+
+      const putRes = await fetch(apiUrl, { method: 'PUT', headers, body: JSON.stringify(body) });
+      if (!putRes.ok) {
+        const err = await putRes.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${putRes.status}`);
+      }
+
+      // 3. Success
+      dot.className = 'gh-dot ok';
+      statusText.textContent = `Publicado · ${new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'})}`;
+      toast('✓ articles.json publicado en GitHub. El sitio se actualizará en ~1 minuto.', 'success');
+
+    } catch (err) {
+      dot.className = 'gh-dot error';
+      statusText.textContent = `Error: ${err.message}`;
+      toast(`Error al publicar: ${err.message}`, 'danger');
+    }
+
+    btn.classList.remove('publishing');
+    btn.textContent = 'Publicar cambios →';
+    btn.disabled = false;
+  }
+
+  // ── STATS ─────────────────────────────────────────────────────────────────
+  function renderStats() {
+    const total = Object.keys(articles).length;
+    const cats  = [...new Set(Object.values(articles).map(a => a.category).filter(Boolean))];
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statCats').textContent  = cats.length;
+    const catList = document.getElementById('catList');
+    catList.innerHTML = '';
+    const counts = {};
+    Object.values(articles).forEach(a => { if (a.category) counts[a.category] = (counts[a.category]||0)+1; });
+    Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([cat,n]) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${cat.replace('Derecho ','').replace(' y ',' & ')}</span><span class="cat-badge">${n}</span>`;
+      catList.appendChild(li);
+    });
+  }
+
+  // ── ARTICLE LIST ──────────────────────────────────────────────────────────
+  function renderList() {
+    const q  = (document.getElementById('adminSearch').value||'').toLowerCase().trim();
+    const el = document.getElementById('articleList');
+    const items = Object.entries(articles).filter(([id,a]) =>
+      !q || a.title.toLowerCase().includes(q) || (a.category||'').toLowerCase().includes(q)
+    );
+    if (!items.length) {
+      el.innerHTML = `<div class="empty-state">${q ? 'No se encontraron artículos.' : 'No hay artículos todavía. Cree el primero.'}</div>`;
+      return;
+    }
+    items.sort(([,a],[,b]) => a.title.localeCompare(b.title,'es'));
+    el.innerHTML = '';
+    items.forEach(([id, art]) => {
+      const clean   = (art.content||'').replace(/<[^>]*>/g,'');
+      const excerpt = clean.length > 100 ? clean.slice(0,100)+'…' : clean;
+      const row = document.createElement('div');
+      row.className = 'article-row';
+      row.innerHTML = `
+        <div class="art-info">
+          <span class="art-category">${art.category||'—'}</span>
+          <div class="art-title">${art.title}</div>
+          <div class="art-meta">
+            <span>📅 ${art.date||'—'}</span>
+            <span style="font-style:italic;max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${excerpt}</span>
+          </div>
+        </div>
+        <div class="art-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEditor('${id}')">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="askDelete('${id}')">Eliminar</button>
+        </div>`;
+      el.appendChild(row);
+    });
+  }
+
+  // ── EDITOR ────────────────────────────────────────────────────────────────
+  function openEditor(id) {
+    editingId = id || null;
+    document.getElementById('modalTitle').textContent = id ? 'Editar artículo' : 'Nuevo artículo';
+    if (id && articles[id]) {
+      const a = articles[id];
+      document.getElementById('fTitle').value    = a.title    || '';
+      document.getElementById('fCategory').value = a.category || '';
+      document.getElementById('fDate').value     = isoDate(a.date);
+      document.getElementById('fSlug').value     = id;
+      document.getElementById('fContent').value  = a.content  || '';
+      updateCharCount(); updatePreview();
+    } else {
+      document.getElementById('fTitle').value    = '';
+      document.getElementById('fCategory').value = '';
+      document.getElementById('fDate').value     = new Date().toISOString().slice(0,10);
+      document.getElementById('fSlug').value     = '';
+      document.getElementById('fContent').value  = '';
+      document.getElementById('charCount').textContent = '0';
+      document.getElementById('previewExcerpt').textContent = '—';
+    }
+    document.getElementById('editorModal').classList.add('open');
+    document.getElementById('fTitle').focus();
+  }
+
+  function closeEditor() {
+    document.getElementById('editorModal').classList.remove('open');
+    editingId = null;
+  }
+
+  function saveArticle() {
+    const title    = document.getElementById('fTitle').value.trim();
+    const category = document.getElementById('fCategory').value;
+    const date     = document.getElementById('fDate').value;
+    const slug     = document.getElementById('fSlug').value.trim();
+    const content  = document.getElementById('fContent').value.trim();
+    if (!title || !category || !date || !slug || !content) { toast('Rellene todos los campos obligatorios.','danger'); return; }
+    if (!/^[a-zA-Z0-9-]+$/.test(slug)) { toast('El slug solo puede contener letras, números y guiones.','danger'); return; }
+    if (!editingId && articles[slug]) { toast('Ya existe un artículo con ese slug.','danger'); return; }
+    const oldId = editingId;
+    if (oldId && oldId !== slug) delete articles[oldId];
+    articles[slug] = { title, category, date: formatDate(date), content };
+    persist();
+    closeEditor();
+    toast((oldId ? 'Artículo actualizado.' : 'Artículo guardado.') + ' Pulse "Publicar cambios" para enviarlo a GitHub.', 'info');
+  }
+
+  // ── DELETE ────────────────────────────────────────────────────────────────
+  function askDelete(id) {
+    deleteTargetId = id;
+    document.getElementById('confirmMsg').textContent = `¿Eliminar "${articles[id]?.title || id}"? Esta acción no se puede deshacer.`;
+    document.getElementById('confirmOverlay').classList.add('open');
+  }
+  function cancelDelete() { deleteTargetId = null; document.getElementById('confirmOverlay').classList.remove('open'); }
+  function confirmDelete() {
+    if (deleteTargetId && articles[deleteTargetId]) {
+      const title = articles[deleteTargetId].title;
+      delete articles[deleteTargetId];
+      persist();
+      toast(`"${title}" eliminado. Pulse "Publicar cambios" para reflejar el cambio en el sitio.`, 'info');
+    }
+    cancelDelete();
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  const MONTHS_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [y,m,d] = iso.split('-').map(Number);
+    return `${d} de ${MONTHS_ES[m-1]}, ${y}`;
+  }
+  function isoDate(str) {
+    if (!str) return '';
+    const match = str.match(/(\d+)\s+de\s+(\w+),?\s+(\d{4})/i);
+    if (!match) return '';
+    const mi = MONTHS_ES.findIndex(n => n === match[2].toLowerCase());
+    if (mi === -1) return '';
+    return `${match[3]}-${String(mi+1).padStart(2,'0')}-${String(match[1]).padStart(2,'0')}`;
+  }
+  function slugify(str) {
+    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,80);
+  }
+
+  document.getElementById('fTitle').addEventListener('input', function() {
+    if (!editingId) document.getElementById('fSlug').value = slugify(this.value);
+    updatePreview();
+  });
+  document.getElementById('fContent').addEventListener('input', () => { updateCharCount(); updatePreview(); });
+
+  function updateCharCount() {
+    document.getElementById('charCount').textContent = document.getElementById('fContent').value.length.toLocaleString('es');
+  }
+  function updatePreview() {
+    const raw = document.getElementById('fContent').value.replace(/<[^>]*>/g,'');
+    document.getElementById('previewExcerpt').textContent = raw.length > 180 ? raw.slice(0,180)+'…' : (raw||'—');
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────────────────────
+  function toast(msg, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    const icon = type === 'success' ? '✓' : type === 'info' ? 'ℹ' : '✕';
+    el.innerHTML = `<span>${icon}</span> ${msg}`;
+    document.getElementById('toastWrap').appendChild(el);
+    setTimeout(() => { el.style.transition='opacity 0.4s'; el.style.opacity='0'; setTimeout(()=>el.remove(),400); }, 4000);
+  }
+
+  // ── THEME ─────────────────────────────────────────────────────────────────
+  const html = document.documentElement;
+  const btn  = document.getElementById('themeToggle');
+  const s    = localStorage.getItem('np-theme') || 'light';
+  html.dataset.theme = s; btn.textContent = s === 'dark' ? '☀' : '☽';
+  btn.addEventListener('click', () => {
+    const n = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    html.dataset.theme = n; localStorage.setItem('np-theme', n);
+    btn.textContent = n === 'dark' ? '☀' : '☽';
+  });
+
+  // ── KEYBOARD ──────────────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeEditor(); closeSettings(); cancelDelete(); }
+  });
+  </script>
+</body>
+</html>

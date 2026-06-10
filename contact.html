@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto | Nomos &amp; Praxis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>!function(){var t=localStorage.getItem("np-theme")||"light";document.documentElement.dataset.theme=t;}();</script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-topbar container" style="padding-left:0;padding-right:0;width:100%;">
+        <span class="header-tagline">Revista de Pensamiento Jurídico — Fundada 2024</span>
+        <div class="header-utils">
+          <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">☽</button>
+        </div>
+      </div>
+      <div class="brand">
+        <h1>Nomos &amp; Praxis</h1>
+        <div class="brand-divider"><span class="brand-latin">Lex et Intellectus</span></div>
+      </div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">Inicio</a>
+        <a href="about.html" class="nav-link">Sobre el Proyecto</a>
+        <a href="practice-areas.html" class="nav-link">Áreas de Práctica</a>
+        <a href="contact.html" class="nav-link active">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-wrapper">
+    <section class="feed">
+      <div class="legal-post">
+        <div class="post-header">
+          <span class="category-badge">Contacto</span>
+        </div>
+        <h2 class="post-title">Solicitar una Consulta</h2>
+        <p class="post-excerpt">
+          Para consultas relacionadas con análisis legal, envíos de colaboraciones o consultas profesionales, utilice el formulario a continuación. Nuestro equipo revisará su solicitud según la capacidad y especialización.
+        </p>
+
+        <div id="form-success-msg" class="form-success-msg">
+          ✓ Su mensaje ha sido enviado. Nos pondremos en contacto con usted a la brevedad.
+        </div>
+
+        <form class="contact-form" id="contactForm" novalidate>
+          <div class="form-group">
+            <label for="name">Nombre Completo</label>
+            <input type="text" id="name" name="name" required placeholder="Ej. María García López">
+            <span class="field-error" id="name-error">Por favor, introduzca su nombre completo.</span>
+          </div>
+          <div class="form-group">
+            <label for="email">Email de Contacto</label>
+            <input type="email" id="email" name="email" required placeholder="nombre@ejemplo.com">
+            <span class="field-error" id="email-error">Por favor, introduzca un email válido.</span>
+          </div>
+          <div class="form-group">
+            <label for="subject">Área de Interés</label>
+            <input type="text" id="subject" name="subject" required placeholder="Ej. Propiedad Intelectual, Derecho Laboral…">
+            <span class="field-error" id="subject-error">Por favor, indique el área de interés.</span>
+          </div>
+          <div class="form-group">
+            <label for="message">Resumen del Caso / Consulta</label>
+            <textarea id="message" name="message" rows="5" required placeholder="Describa brevemente su consulta…"></textarea>
+            <span class="field-error" id="message-error">Por favor, describa su consulta.</span>
+          </div>
+          <button type="submit" class="submit-btn" id="submitBtn">Enviar Solicitud</button>
+        </form>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div class="widget">
+        <h3 class="widget-title">Información</h3>
+        <ul class="widget-list">
+          <li><a href="#">Lun – Dom: 09:00 – 18:00</a></li>
+          <li><a href="about.html">Sobre el proyecto →</a></li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <button class="back-to-top" id="backToTop" aria-label="Volver arriba">↑</button>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="#">Política de Privacidad</a>
+        <a href="#">Disclaimer</a>
+        <a href="#">Publicidad</a>
+        <a href="#">Términos de Servicio</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 Nomos &amp; Praxis. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script>
+  // Theme
+  const html = document.documentElement;
+  const btn  = document.getElementById('themeToggle');
+  const s    = localStorage.getItem('np-theme') || 'light';
+  html.dataset.theme = s; btn.textContent = s === 'dark' ? '☀' : '☽';
+  btn.addEventListener('click', () => {
+    const n = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    html.dataset.theme = n; localStorage.setItem('np-theme', n);
+    btn.textContent = n === 'dark' ? '☀' : '☽';
+  });
+
+  // Back to top
+  const btt = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400), { passive: true });
+  btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // Form validation
+  function validateField(input) {
+    const errorEl = document.getElementById(input.id + '-error');
+    if (!errorEl) return true;
+    const valid = input.checkValidity() && input.value.trim().length > 0;
+    input.classList.toggle('invalid', !valid);
+    input.classList.toggle('valid', valid);
+    errorEl.classList.toggle('show', !valid);
+    return valid;
+  }
+
+  document.querySelectorAll('.contact-form input, .contact-form textarea').forEach(field => {
+    field.addEventListener('blur', () => validateField(field));
+    field.addEventListener('input', () => {
+      if (field.classList.contains('invalid')) validateField(field);
+    });
+  });
+
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const fields = this.querySelectorAll('input, textarea');
+    let allValid = true;
+    fields.forEach(f => { if (!validateField(f)) allValid = false; });
+    if (!allValid) return;
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando…';
+
+    setTimeout(() => {
+      this.style.display = 'none';
+      const msg = document.getElementById('form-success-msg');
+      msg.style.display = 'block';
+      msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 1400);
+  });
+  </script>
+</body>
+</html>

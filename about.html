@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sobre el Proyecto | Nomos &amp; Praxis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>!function(){var t=localStorage.getItem("np-theme")||"light";document.documentElement.dataset.theme=t;}();</script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-topbar container" style="padding-left:0;padding-right:0;width:100%;">
+        <span class="header-tagline">Revista de Pensamiento Jurídico — Fundada 2024</span>
+        <div class="header-utils">
+          <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">☽</button>
+        </div>
+      </div>
+      <div class="brand">
+        <h1>Nomos &amp; Praxis</h1>
+        <div class="brand-divider"><span class="brand-latin">Lex et Intellectus</span></div>
+      </div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">Inicio</a>
+        <a href="about.html" class="nav-link active">Sobre el Proyecto</a>
+        <a href="practice-areas.html" class="nav-link">Áreas de Práctica</a>
+        <a href="contact.html" class="nav-link">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-wrapper">
+    <section class="feed">
+      <div class="legal-post">
+        <div class="post-header">
+          <span class="category-badge">Nuestra Filosofía</span>
+        </div>
+        <h2 class="post-title">Un proyecto de rigor jurídico</h2>
+        <p class="post-excerpt">
+          Nomos &amp; Praxis fue fundada sobre el principio de que el análisis legal debe ser una búsqueda académica rigurosa. Tendemos un puente entre la jurisprudencia teórica y la aplicación práctica, ofreciendo un recurso de autoridad para profesionales y académicos por igual.
+        </p>
+        <p class="post-excerpt">
+          Nuestro enfoque está definido por un compromiso con la integridad inquebrantable y una obsesión con la precisión. No nos limitamos a reportar sobre la ley: analizamos los cambios de paradigma que redefinen los límites de la justicia y la responsabilidad.
+        </p>
+      </div>
+
+      <div class="legal-post">
+        <div class="post-header">
+          <span class="category-badge">Metodología</span>
+        </div>
+        <h2 class="post-title">Cómo trabajamos</h2>
+        <p class="post-excerpt">
+          Cada análisis publicado en Nomos &amp; Praxis pasa por un proceso de revisión editorial que combina la perspectiva doctrinal con la casuística más reciente de los tribunales europeos y nacionales. Nuestros colaboradores son juristas con formación especializada en sus respectivas áreas.
+        </p>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div class="widget">
+        <h3 class="widget-title">Valores Fundamentales</h3>
+        <ul class="widget-list">
+          <li><a href="#">Rigor Académico</a></li>
+          <li><a href="#">Análisis Objetivo</a></li>
+          <li><a href="#">Integridad Ética</a></li>
+          <li><a href="#">Curiosidad Intelectual</a></li>
+        </ul>
+      </div>
+      <div class="widget">
+        <h3 class="widget-title">Colaborar</h3>
+        <ul class="widget-list">
+          <li><a href="contact.html">Enviar propuesta →</a></li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="#">Política de Privacidad</a>
+        <a href="#">Disclaimer</a>
+        <a href="#">Publicidad</a>
+        <a href="#">Términos de Servicio</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 Nomos &amp; Praxis. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script>
+  const btt = document.getElementById("backToTop");
+  window.addEventListener("scroll", () => btt.classList.toggle("visible", window.scrollY > 400), { passive: true });
+  btt.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  const html = document.documentElement;
+  const btn  = document.getElementById('themeToggle');
+  const s    = localStorage.getItem('np-theme') || 'light';
+  html.dataset.theme = s;
+  btn.textContent = s === 'dark' ? '☀' : '☽';
+  btn.addEventListener('click', () => {
+    const n = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    html.dataset.theme = n; localStorage.setItem('np-theme', n);
+    btn.textContent = n === 'dark' ? '☀' : '☽';
+  });
+  </script>
+  <button class="back-to-top" id="backToTop" aria-label="Volver arriba">↑</button>
+
+</body>
+</html>
