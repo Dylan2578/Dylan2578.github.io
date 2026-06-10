@@ -670,7 +670,7 @@ html { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
 }
 
 .article-header {
-  margin-bottom: 2.5rem;
+  margin-bottom: 0;
   padding-bottom: 0;
 }
 
@@ -717,18 +717,10 @@ html { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
 
 .article-meta span { display: flex; align-items: center; gap: 0.4rem; }
 
-.academic-divider {
-  border: none;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  margin: 2.5rem 0;
-  opacity: .6;
-}
-
 /* Article body */
 .article-body {
   font-size: 1.2rem;
-  line-height: 1.9;
+  line-height: 1.4;
   color: var(--text-main);
   max-width: 68ch;
 }
@@ -741,13 +733,12 @@ html { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
 
 .article-body h2 {
   font-family: var(--font-display);
-  font-size: 1.85rem;
+  font-size: 1.5rem;
   color: var(--text-main);
-  margin: 3.2rem 0 1.1rem;
+  margin: 0rem 0 0.7rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-color);
   position: relative;
-  letter-spacing: -0.2px;
 }
 
 .article-body h2::after {

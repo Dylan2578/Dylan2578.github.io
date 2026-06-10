@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nomos &amp; Praxis | Artículo</title>
-  <!-- Meta description injected dynamically by JS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,16 +18,8 @@
   <header class="site-header">
     <div class="header-inner">
       <div class="header-topbar container" style="padding-left:0;padding-right:0;width:100%;">
-        <span class="header-tagline">Revista de Pensamiento Jurídico — Fundada 2026</span>
+        <span class="header-tagline">Revista de Pensamiento Jurídico — Fundada 2024</span>
         <div class="header-utils">
-          <!-- Inline search in article pages -->
-          <div class="header-search-wrap" id="headerSearchWrap">
-            <div class="header-search-input-wrap">
-              <input type="text" id="headerSearchInput" placeholder="Buscar artículos…" autocomplete="off" aria-label="Buscar artículos">
-              <span class="header-search-icon">⌕</span>
-            </div>
-            <div class="header-search-results" id="headerSearchResults"></div>
-          </div>
           <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">☽</button>
         </div>
       </div>
@@ -39,6 +30,7 @@
       <nav class="main-nav">
         <a href="index.html" class="nav-link">Inicio</a>
         <a href="about.html" class="nav-link">Sobre el Proyecto</a>
+        <a href="practice-areas.html" class="nav-link">Áreas de Práctica</a>
         <a href="contact.html" class="nav-link">Contacto</a>
       </nav>
     </div>
@@ -51,34 +43,12 @@
         <h1 id="art-title">Cargando artículo…</h1>
         <div class="article-meta">
           <span>📅 <span id="art-date">—</span></span>
-          <span>✍ <span id="art-author">Nomos &amp; Praxis</span></span>
+          <span>✍ Nomos &amp; Praxis</span>
           <span id="art-readtime">—</span>
         </div>
-        <div id="art-tags" class="article-tags"></div>
       </header>
 
-      <hr class="academic-divider">
-
-      <!-- Mobile TOC toggle -->
-      <div class="toc-mobile-toggle" id="tocMobileToggle" style="display:none;">
-        <button class="toc-mobile-btn" id="tocMobileBtn" aria-expanded="false" aria-controls="toc-mobile-panel">
-          <span class="toc-mobile-icon">§</span>
-          <span>Contenido del artículo</span>
-          <span class="toc-mobile-arrow">▾</span>
-        </button>
-        <div class="toc-mobile-panel" id="toc-mobile-panel" hidden>
-          <ul class="toc-list toc-list-mobile" id="toc-list-mobile"></ul>
-        </div>
-      </div>
-
       <article id="art-content" class="article-body"></article>
-
-      <!-- Print / Export -->
-      <div class="article-actions">
-        <button class="action-btn" onclick="window.print()" title="Imprimir o exportar a PDF">
-          <span class="action-icon">⎙</span> Imprimir / Exportar PDF
-        </button>
-      </div>
 
       <div class="article-footer-nav">
         <a href="index.html" class="back-btn">← Volver al inicio</a>
@@ -93,6 +63,7 @@
       <div class="widget">
         <h3 class="widget-title">Recursos</h3>
         <ul class="widget-list">
+          <li><a href="practice-areas.html">Áreas de práctica →</a></li>
           <li><a href="contact.html">Solicitar consulta →</a></li>
           <li><a href="index.html">Ver más artículos →</a></li>
         </ul>
@@ -115,7 +86,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-  // ── Theme ─────────────────────────────────────────────────
+  // Theme
   const html = document.documentElement;
   const themeBtn = document.getElementById('themeToggle');
   const saved = localStorage.getItem('np-theme') || 'light';
@@ -128,14 +99,14 @@
     themeBtn.textContent = next === 'dark' ? '☀' : '☽';
   });
 
-  // ── Back to top ───────────────────────────────────────────
+  // Back to top
   const btt = document.getElementById('backToTop');
   window.addEventListener('scroll', () => {
     btt.classList.toggle('visible', window.scrollY > 400);
   }, { passive: true });
   btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-  // ── Reading progress ──────────────────────────────────────
+  // Reading progress
   const progressBar = document.getElementById('readingProgress');
   window.addEventListener('scroll', () => {
     const article = document.getElementById('art-content');
@@ -147,51 +118,14 @@
     progressBar.style.width = pct + '%';
   }, { passive: true });
 
-  // ── Reading time ──────────────────────────────────────────
+  // Reading time
   function readingTime(content) {
     const words = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const mins  = Math.max(1, Math.round(words / 220));
     return `${mins} min de lectura`;
   }
 
-  // ── Inline search (header) ────────────────────────────────
-  let allArticlesData = {};
-
-  function normalize(t) {
-    return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-  }
-
-  const headerInput   = document.getElementById('headerSearchInput');
-  const headerResults = document.getElementById('headerSearchResults');
-
-  headerInput.addEventListener('input', () => {
-    const q = normalize(headerInput.value);
-    if (!q || q.length < 2) { headerResults.innerHTML = ''; headerResults.style.display = 'none'; return; }
-    const matches = Object.entries(allArticlesData).filter(([, art]) =>
-      normalize(art.title).includes(q) ||
-      normalize(art.category).includes(q) ||
-      (art.tags || []).some(tag => normalize(tag).includes(q))
-    ).slice(0, 5);
-    if (!matches.length) {
-      headerResults.innerHTML = '<div class="header-search-empty">Sin resultados</div>';
-    } else {
-      headerResults.innerHTML = matches.map(([id, art]) =>
-        `<a href="${id}" class="header-search-result">
-          <span class="hsr-cat">${art.category}</span>
-          <span class="hsr-title">${art.title}</span>
-        </a>`
-      ).join('');
-    }
-    headerResults.style.display = 'block';
-  });
-
-  document.addEventListener('click', e => {
-    if (!document.getElementById('headerSearchWrap').contains(e.target)) {
-      headerResults.style.display = 'none';
-    }
-  });
-
-  // ── Article loader ────────────────────────────────────────
+  // Article loader
   document.addEventListener('DOMContentLoaded', () => {
     const params    = new URLSearchParams(window.location.search);
     const articleId = params.get('id');
@@ -200,30 +134,13 @@
     fetch('articles.json')
       .then(r => r.json())
       .then(data => {
-        allArticlesData = data;
         const article = data[articleId];
         if (article) {
           document.getElementById('art-title').textContent    = article.title;
           document.getElementById('art-date').textContent     = article.date;
           document.getElementById('art-category').textContent = article.category;
-          document.getElementById('art-author').textContent   = article.author || 'Nomos & Praxis';
           document.getElementById('art-readtime').textContent = readingTime(article.content);
           document.title = `Nomos & Praxis | ${article.title}`;
-
-          // Dynamic meta description
-          const metaDesc = document.createElement('meta');
-          metaDesc.name = 'description';
-          metaDesc.content = article.description ||
-            article.content.replace(/<[^>]*>/g, '').slice(0, 155) + '…';
-          document.head.appendChild(metaDesc);
-
-          // Tags
-          if (article.tags && article.tags.length) {
-            const tagsEl = document.getElementById('art-tags');
-            tagsEl.innerHTML = article.tags.map(t =>
-              `<a href="index.html#cat=&q=${encodeURIComponent(t)}" class="article-tag">${t}</a>`
-            ).join('');
-          }
 
           const contentEl  = document.getElementById('art-content');
           const isMarkdown = !article.content.trim().startsWith('<');
@@ -243,34 +160,15 @@
       });
   });
 
-  // ── TOC (desktop + mobile) ────────────────────────────────
   function buildTOC(contentEl) {
     const headings  = contentEl.querySelectorAll('h2, h3');
     if (headings.length < 2) return;
-
-    // Desktop TOC
     const tocList   = document.getElementById('toc-list');
     const tocWidget = document.getElementById('toc-widget');
     tocWidget.style.display = 'block';
 
-    // Mobile TOC toggle
-    const mobileToggle = document.getElementById('tocMobileToggle');
-    const mobileList   = document.getElementById('toc-list-mobile');
-    const mobileBtn    = document.getElementById('tocMobileBtn');
-    const mobilePanel  = document.getElementById('toc-mobile-panel');
-    mobileToggle.style.display = 'block';
-
-    mobileBtn.addEventListener('click', () => {
-      const isOpen = !mobilePanel.hidden;
-      mobilePanel.hidden = isOpen;
-      mobileBtn.setAttribute('aria-expanded', String(!isOpen));
-      mobileBtn.querySelector('.toc-mobile-arrow').textContent = isOpen ? '▾' : '▴';
-    });
-
     headings.forEach((h, i) => {
       if (!h.id) h.id = 'section-' + i;
-
-      // Desktop item
       const li = document.createElement('li');
       const a  = document.createElement('a');
       a.href        = '#' + h.id;
@@ -278,25 +176,14 @@
       if (h.tagName === 'H3') a.style.paddingLeft = '1.5rem';
       li.appendChild(a);
       tocList.appendChild(li);
-
-      // Mobile item (clone)
-      const liM = li.cloneNode(true);
-      liM.querySelector('a').addEventListener('click', () => {
-        mobilePanel.hidden = true;
-        mobileBtn.setAttribute('aria-expanded', 'false');
-        mobileBtn.querySelector('.toc-mobile-arrow').textContent = '▾';
-      });
-      mobileList.appendChild(liM);
     });
 
-    // Highlight active heading (both desktop and mobile)
-    const links       = tocList.querySelectorAll('a');
-    const mobileLinks = mobileList.querySelectorAll('a');
+    // Highlight active heading
+    const links = tocList.querySelectorAll('a');
     window.addEventListener('scroll', () => {
       let current = '';
       headings.forEach(h => { if (window.scrollY >= h.offsetTop - 140) current = h.id; });
       links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
-      mobileLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
     }, { passive: true });
   }
   </script>
