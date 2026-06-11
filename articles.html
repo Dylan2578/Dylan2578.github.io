@@ -116,10 +116,57 @@
   }, { passive: true });
 
   // ── Reading time ──────────────────────────────────────────
-  function readingTime(content) {
+function readingTime(content) {
     const words = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const mins  = Math.max(1, Math.round(words / 220));
     return `${mins} min de lectura`;
+  }
+
+  // ── Footnote processor ────────────────────────────────────
+  function processFootnotes(contentEl) {
+    const html = contentEl.innerHTML;
+
+    // Collect all footnote definitions [^N]: text
+    const defs = {};
+    const defRegex = /\[\^(\d+)\]:\s*(.+?)(?=\[\^\d+\]:|$)/gs;
+    let match;
+    while ((match = defRegex.exec(html)) !== null) {
+      defs[match[1]] = match[2].trim();
+    }
+
+    if (Object.keys(defs).length === 0) return;
+
+    // Replace inline references [^N] (not definitions) with superscript links
+    let processed = html.replace(/\[\^(\d+)\](?!:)/g, (_, n) =>
+      `<a class="footnote-ref" id="ref-${n}" href="#fn-${n}" title="Nota ${n}">[${n}]</a>`
+    );
+
+    // Remove the raw definition lines from the body
+    processed = processed.replace(/\[\^\d+\]:\s*.+?(?=\[\^\d+\]:|$)/gs, '');
+    processed = processed.replace(/(<br\s*\/?>|\n)+\s*$/g, '');
+
+    contentEl.innerHTML = processed;
+
+    // Build footnotes section
+    const section = document.createElement('div');
+    section.className = 'footnotes-section';
+    section.innerHTML = `<p class="footnotes-heading">Notas</p>`;
+
+    const ol = document.createElement('ol');
+    ol.className = 'footnotes-list';
+
+    Object.keys(defs).sort((a, b) => +a - +b).forEach(n => {
+      const li = document.createElement('li');
+      li.id = `fn-${n}`;
+      li.innerHTML = `
+        <span class="footnote-num">${n}.</span>
+        <span>${defs[n]}<a class="footnote-backlink" href="#ref-${n}" title="Volver al texto">↩</a></span>
+      `;
+      ol.appendChild(li);
+    });
+
+    section.appendChild(ol);
+    contentEl.appendChild(section);
   }
 
   // ── TOC builder ───────────────────────────────────────────
@@ -187,7 +234,8 @@
         const isMarkdown = !article.content.trim().startsWith('<');
         contentEl.innerHTML = isMarkdown
           ? (typeof marked !== 'undefined' ? marked.parse(article.content) : article.content)
-          : article.content;
+          : article.content; 
+          processFootnotes(contentEl);
 
         buildTOC(contentEl);
       })
