@@ -4,6 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nomos &amp; Praxis | Artículo</title>
+  <meta name="description"          id="meta-description" content="">
+
+  <!-- Open Graph (populated dynamically) -->
+  <meta property="og:type"          content="article">
+  <meta property="og:site_name"     content="Nomos &amp; Praxis">
+  <meta property="og:locale"        content="es_ES">
+  <meta property="og:title"         id="og-title"       content="">
+  <meta property="og:description"   id="og-description" content="">
+  <meta property="og:url"           id="og-url"         content="">
+  <meta property="article:section"  id="og-section"     content="">
+  <meta property="article:published_time" id="og-pubtime" content="">
+
+  <!-- Twitter / X Card (populated dynamically) -->
+  <meta name="twitter:card"         content="summary">
+  <meta name="twitter:site"         content="@nomosypraxis">
+  <meta name="twitter:title"        id="tw-title"       content="">
+  <meta name="twitter:description"  id="tw-description" content="">
+
+  <!-- JSON-LD Article schema (injected dynamically) -->
+  <script type="application/ld+json" id="jsonld-article">{}</script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -276,22 +297,86 @@ function readingTime(content) {
         document.title = `Nomos & Praxis | ${article.title}`;
 
         // ── Canonical URL ─────────────────────────────────────
-        const siteBase   = 'https://dylan2578.github.io';
+        const siteBase   = 'https://nomosypraxis.es';
         const cleanPath  = window.location.pathname.replace(/\.html$/, '');
         const canonical  = `${siteBase}${cleanPath}?id=${articleId}`;
         document.getElementById('canonical-url').href = canonical;
 
+        // ── Open Graph + Twitter meta tags ────────────────────
+        const rawText  = article.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        const excerpt  = rawText.length > 160 ? rawText.slice(0, 157) + '…' : rawText;
+
+        function setMeta(id, val) {
+          const el = document.getElementById(id);
+          if (el) el.setAttribute('content', val);
+        }
+
+        setMeta('meta-description', excerpt);
+        setMeta('og-title',       article.title);
+        setMeta('og-description', excerpt);
+        setMeta('og-url',         canonical);
+        setMeta('og-section',     article.category || '');
+
+        // Convert Spanish date to ISO 8601 for article:published_time
+        const MONTHS_ISO = {enero:'01',febrero:'02',marzo:'03',abril:'04',mayo:'05',junio:'06',
+                            julio:'07',agosto:'08',septiembre:'09',octubre:'10',noviembre:'11',diciembre:'12'};
+        const dm = (article.date || '').match(/(\d+)\s+de\s+(\w+),?\s+(\d{4})/i);
+        const iso = dm ? `${dm[3]}-${MONTHS_ISO[dm[2].toLowerCase()]||'01'}-${String(dm[1]).padStart(2,'0')}` : '';
+        if (iso) setMeta('og-pubtime', iso + 'T00:00:00+01:00');
+
+        setMeta('tw-title',       article.title);
+        setMeta('tw-description', excerpt);
+
+        // ── JSON-LD Article schema ────────────────────────────
+        const jsonld = {
+          '@context':        'https://schema.org',
+          '@type':           'Article',
+          'headline':        article.title,
+          'description':     excerpt,
+          'url':             canonical,
+          'inLanguage':      'es',
+          'datePublished':   iso || undefined,
+          'author': {
+            '@type': 'Person',
+            'name':  article.author || 'Nomos & Praxis'
+          },
+          'publisher': {
+            '@type': 'Organization',
+            'name':  'Nomos & Praxis',
+            'url':   siteBase
+          },
+          'isPartOf': {
+            '@type': 'WebSite',
+            'name':  'Nomos & Praxis',
+            'url':   siteBase + '/'
+          },
+          'articleSection': article.category || undefined
+        };
+        // Remove undefined keys
+        Object.keys(jsonld).forEach(k => jsonld[k] === undefined && delete jsonld[k]);
+        const ldEl = document.getElementById('jsonld-article');
+        if (ldEl) ldEl.textContent = JSON.stringify(jsonld);
+
         const contentEl  = document.getElementById('art-content');
         const isMarkdown = !article.content.trim().startsWith('<');
-        contentEl.innerHTML = isMarkdown
-          ? (typeof marked !== 'undefined' ? marked.parse(article.content) : article.content)
-          : article.content; 
+
+        // marked is loaded via CDN at end of <body>; wait for it if needed
+        function renderContent() {
+          contentEl.innerHTML = isMarkdown
+            ? (typeof marked !== 'undefined' ? marked.parse(article.content) : article.content)
+            : article.content;
           processFootnotes(contentEl);
+          buildTOC(contentEl);
+          buildArticleNav(articleId, data);
+        }
 
-        buildTOC(contentEl);
+        if (isMarkdown && typeof marked === 'undefined') {
+          // CDN script not yet executed — wait one tick
+          setTimeout(renderContent, 0);
+        } else {
+          renderContent();
+        }
 
-        // ── Prev / Next navigation ────────────────────────────
-        buildArticleNav(articleId, data);
       })
       .catch(() => {
         document.getElementById('art-title').textContent   = 'Error al cargar';
