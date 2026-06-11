@@ -13,7 +13,6 @@
     "author": "asdasdasdasdffdgfggf",
     "content": "asssssssssssssasasas"
   },
-<<<<<<< HEAD
   "ejemplo2": {
     "title": "EJemplo",
     "category": "Derecho Financiero y Tributario",
@@ -21,26 +20,11 @@
     "author": "",
     "content": "asssssssssssssasasas"
   },
-    "ejemplo3": {
+  "ejemplo3": {
     "title": "EJemplo",
     "category": "Derecho Financiero y Tributario",
     "date": "10 de junio, 2026",
     "author": "",
     "content": "asssssssssssssasasas"
-=======
-  "testes": {
-    "title": "testes",
-    "category": "Derecho Civil y Mercantil",
-    "date": "11 de junio, 2026",
-    "author": "asdasd",
-    "content": "asdasd"
-  },
-  "etstestetsttsettsettesteett": {
-    "title": "ETSTESTETSTTSETTSETTESTEETT",
-    "category": "Derecho de la Unión Europea",
-    "date": "11 de junio, 2026",
-    "author": "asasasdasa",
-    "content": "asdadsasdsadsadddddddddddddddddddddddddddddd\nasdadsasdsadsadddddddddddddddddddddddddddddd\nasdadsasdsadsadddddddddddddddddddddddddddddd\nasdadsasdsadsadddddddddddddddddddddddddddddd"
->>>>>>> be28289784524d6f8e2465ec16279d2b7a89a1c3
   }
 }

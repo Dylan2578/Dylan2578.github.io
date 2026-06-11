@@ -9,6 +9,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="canonical" id="canonical-url" href="">
+  <script>
+    // Set canonical to the clean URL (no .html, no query string)
+    (function(){
+      var base = 'https://nomosypraxis.es';
+      var path = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
+      document.getElementById('canonical-url').href = base + path;
+    })();
+  </script>
   <script>!function(){var t=localStorage.getItem("np-theme")||"light";document.documentElement.dataset.theme=t;}();</script>
 </head>
 <body>
@@ -64,17 +73,11 @@
         </div>
       </div>
 
-      <!-- Categories -->
+      <!-- Categories — populated dynamically from articles.json -->
       <div class="widget">
         <h3 class="widget-title">Categorías</h3>
         <ul class="widget-list" id="category-list">
-          <li><a href="#" class="filter-category active-filter" data-category="">Todas las áreas <span class="cat-count" id="cat-all">—</span></a></li>
-          <li><a href="#" class="filter-category" data-category="Derecho Civil y Mercantil">Civil y Mercantil <span class="cat-count"></span></a></li>
-          <li><a href="#" class="filter-category" data-category="Derecho Digital y Tecnología">Digital y Tecnología <span class="cat-count"></span></a></li>
-          <li><a href="#" class="filter-category" data-category="Derecho Financiero y Tributario">Financiero y Tributario <span class="cat-count"></span></a></li>
-          <li><a href="#" class="filter-category" data-category="Derecho Laboral">Laboral <span class="cat-count"></span></a></li>
-          <li><a href="#" class="filter-category" data-category="Derecho de la Unión Europea">Unión Europea <span class="cat-count"></span></a></li>
-          <li><a href="#" class="filter-category" data-category="Derecho Constitucional y Administrativo">Constitucional y Adm. <span class="cat-count"></span></a></li>
+          <!-- renderCategoryList() inserts items here after fetch -->
         </ul>
       </div>
 
@@ -324,18 +327,66 @@
     renderArticles(filteredArticles, 1, skipPushState);
   }
 
+  // ── Short display label for a category string ──────────────
+  function shortLabel(cat) {
+    // Strip leading "Derecho " for compact sidebar display
+    return cat.replace(/^Derecho\s+/i, '');
+  }
+
+  function renderCategoryList(articles) {
+    const catList = document.getElementById('category-list');
+    if (!catList) return;
+
+    // Count per category
+    const counts = {};
+    articles.forEach(([, art]) => {
+      counts[art.category] = (counts[art.category] || 0) + 1;
+    });
+
+    // Sort categories alphabetically
+    const sorted = Object.keys(counts).sort((a, b) => a.localeCompare(b, 'es'));
+
+    catList.innerHTML = `
+      <li>
+        <a href="#" class="filter-category active-filter" data-category="">
+          Todas las áreas <span class="cat-count" id="cat-all">${articles.length}</span>
+        </a>
+      </li>
+      ${sorted.map(cat => `
+        <li>
+          <a href="#" class="filter-category" data-category="${cat}">
+            ${shortLabel(cat)} <span class="cat-count">${counts[cat]}</span>
+          </a>
+        </li>
+      `).join('')}
+    `;
+
+    // Re-attach click events on the freshly rendered links
+    catList.querySelectorAll('.filter-category').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        catList.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
+        link.classList.add('active-filter');
+        activeCategory = link.dataset.category;
+        searchInput.value = '';
+        applyFilters();
+      });
+    });
+  }
+
   function updateCategoryCounts(articles) {
-    document.getElementById('cat-all').textContent = articles.length;
+    const allBadge = document.getElementById('cat-all');
+    if (allBadge) allBadge.textContent = articles.length;
     document.querySelectorAll('.filter-category[data-category]').forEach(link => {
       const cat = link.dataset.category;
       if (!cat) return;
-      const n = articles.filter(([,a]) => a.category === cat).length;
+      const n = articles.filter(([, a]) => a.category === cat).length;
       const badge = link.querySelector('.cat-count');
       if (badge) badge.textContent = n || 0;
     });
   }
 
-  function restoreUIFromState(state) {
+  // Init(state) {
     const { cat = '', q = '', page = 1, sort = 'date-desc' } = state;
 
     sortMode = sort;
@@ -371,17 +422,6 @@
     applyFilters();
   });
 
-  document.querySelectorAll('.filter-category').forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      document.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
-      link.classList.add('active-filter');
-      activeCategory = link.dataset.category;
-      searchInput.value = '';
-      applyFilters();
-    });
-  });
-
   window.addEventListener('popstate', () => {
     if (allArticles.length) {
       restoreUIFromState(getStateFromHash());
@@ -393,7 +433,7 @@
     .then(r => r.json())
     .then(data => {
       allArticles = Object.entries(data);
-      updateCategoryCounts(allArticles);
+      renderCategoryList(allArticles);   // builds sidebar + attaches events
 
       const hashState = getStateFromHash();
       if (Object.keys(hashState).length > 0) {

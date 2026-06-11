@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="canonical" id="canonical-url" href="">
+  <script>
+    // Canonical is set to the clean article URL after we know the id
+    // (handled in DOMContentLoaded below; placeholder prevents missing tag)
+  </script>
   <script>!function(){var t=localStorage.getItem("np-theme")||"light";document.documentElement.dataset.theme=t;}();</script>
 </head>
 <body>
@@ -269,6 +274,12 @@ function readingTime(content) {
         document.getElementById('art-readtime').textContent = readingTime(article.content);
         document.getElementById('art-author').textContent  = article.author || '';
         document.title = `Nomos & Praxis | ${article.title}`;
+
+        // ── Canonical URL ─────────────────────────────────────
+        const siteBase   = 'https://nomosypraxis.es';
+        const cleanPath  = window.location.pathname.replace(/\.html$/, '');
+        const canonical  = `${siteBase}${cleanPath}?id=${articleId}`;
+        document.getElementById('canonical-url').href = canonical;
 
         const contentEl  = document.getElementById('art-content');
         const isMarkdown = !article.content.trim().startsWith('<');
