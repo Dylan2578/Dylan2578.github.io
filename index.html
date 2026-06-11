@@ -18,6 +18,7 @@
       <div class="header-topbar container" style="padding-left:0;padding-right:0;width:100%;">
         <span class="header-tagline">Revista de Pensamiento Jurídico</span>
         <div class="header-utils">
+          <button class="admin-entry-btn" id="adminEntryBtn" title="Gestión de contenidos" aria-label="Acceso administración">⚿</button>
           <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">☽</button>
         </div>
       </div>
@@ -105,6 +106,38 @@
   </footer>
 
   <button class="back-to-top" id="backToTop" aria-label="Volver arriba">↑</button>
+
+  <!-- ── ADMIN LOGIN MODAL ─────────────────────────────────────────────── -->
+  <div class="adm-overlay" id="admOverlay" role="dialog" aria-modal="true" aria-label="Acceso administración">
+    <div class="adm-card" id="admCard">
+      <!-- Logged-out view -->
+      <div id="admLoginView">
+        <div class="adm-header">
+          <span class="adm-title">Gestión de contenidos</span>
+          <button class="adm-close" id="admClose" aria-label="Cerrar">✕</button>
+        </div>
+        <p class="adm-sub">Introduzca su contraseña para acceder al panel de administración.</p>
+        <div class="adm-field">
+          <label for="admPw">Contraseña</label>
+          <input type="password" id="admPw" placeholder="••••••••" autocomplete="current-password">
+          <span class="adm-error" id="admError"></span>
+        </div>
+        <button class="adm-submit" id="admSubmit">Entrar al panel</button>
+      </div>
+      <!-- Logged-in view -->
+      <div id="admSessionView" style="display:none;">
+        <div class="adm-header">
+          <span class="adm-title">Sesión activa</span>
+          <button class="adm-close" id="admClose2" aria-label="Cerrar">✕</button>
+        </div>
+        <p class="adm-sub" id="admSessionMsg">Sesión iniciada. Puede acceder al panel directamente.</p>
+        <div class="adm-session-actions">
+          <a href="admin.html" class="adm-submit" style="text-align:center;text-decoration:none;display:block;">Abrir panel →</a>
+          <button class="adm-logout" id="admLogout">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
   // ── Theme ─────────────────────────────────────────────────
@@ -317,9 +350,7 @@
 
     searchInput.value = q;
 
-    // Re-aplicar filtros basados en el estado restaurado
     applyFilters(true);
-    // Si había una página específica, volver a renderizarla
     if (page > 1) renderArticles(filteredArticles, parseInt(page), true);
   }
 
@@ -334,7 +365,6 @@
   });
 
   searchInput.addEventListener('input', () => {
-    // Reset categoría al buscar para evitar resultados vacíos contradictorios
     document.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
     document.querySelector('.filter-category[data-category=""]').classList.add('active-filter');
     activeCategory = '';
@@ -347,7 +377,7 @@
       document.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
       link.classList.add('active-filter');
       activeCategory = link.dataset.category;
-      searchInput.value = ''; // Limpiar búsqueda al filtrar por categoría
+      searchInput.value = '';
       applyFilters();
     });
   });
@@ -376,6 +406,123 @@
     .catch(() => {
       container.innerHTML = '<p class="no-results">Error al cargar los artículos.</p>';
     });
+
+  // ── ADMIN MODAL ───────────────────────────────────────────
+  const ADMIN_HASH   = 'b0df74369ca62f8fc1a5edaa3c6f95e0e2fe15afe6b36a62a3e1ad0c0d45e7f3';
+  const AUTH_KEY     = 'np_auth_ts';
+  const LOCK_KEY     = 'np_lock';
+  const SESSION_TTL  = 4 * 60 * 60 * 1000;
+  const MAX_ATTEMPTS = 5;
+  const LOCK_DURATION= 15 * 60 * 1000;
+
+  const overlay      = document.getElementById('admOverlay');
+  const loginView    = document.getElementById('admLoginView');
+  const sessionView  = document.getElementById('admSessionView');
+  const admError     = document.getElementById('admError');
+  const admPw        = document.getElementById('admPw');
+  const entryBtn     = document.getElementById('adminEntryBtn');
+
+  async function admHash(pw) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+  }
+  function admGetLock() {
+    try { return JSON.parse(localStorage.getItem(LOCK_KEY)) || { attempts:0, lockedUntil:0 }; }
+    catch { return { attempts:0, lockedUntil:0 }; }
+  }
+  function admSetLock(s) { localStorage.setItem(LOCK_KEY, JSON.stringify(s)); }
+  function admSessionValid() {
+    const ts = parseInt(localStorage.getItem(AUTH_KEY) || '0', 10);
+    return ts && (Date.now() - ts < SESSION_TTL);
+  }
+
+  function openAdminModal() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (admSessionValid()) {
+      loginView.style.display  = 'none';
+      sessionView.style.display = '';
+      const remaining = Math.ceil((parseInt(localStorage.getItem(AUTH_KEY)) + SESSION_TTL - Date.now()) / 60000);
+      const hrs = Math.floor(remaining / 60), mins = remaining % 60;
+      document.getElementById('admSessionMsg').textContent =
+        `Sesión activa (expira en ${hrs > 0 ? hrs + 'h ' : ''}${mins}min). Puede acceder al panel directamente.`;
+    } else {
+      loginView.style.display  = '';
+      sessionView.style.display = 'none';
+      const lock = admGetLock();
+      if (lock.lockedUntil && Date.now() < lock.lockedUntil) {
+        const m = Math.ceil((lock.lockedUntil - Date.now()) / 60000);
+        admError.textContent = `Panel bloqueado. Espere ${m} minuto${m !== 1 ? 's' : ''}.`;
+        admError.style.display = 'block';
+      }
+      setTimeout(() => admPw.focus(), 80);
+    }
+  }
+
+  function closeAdminModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    admPw.value = '';
+    admError.style.display = 'none';
+    admError.textContent = '';
+  }
+
+  async function admSubmit() {
+    const lock = admGetLock();
+    if (lock.lockedUntil && Date.now() < lock.lockedUntil) {
+      const m = Math.ceil((lock.lockedUntil - Date.now()) / 60000);
+      admError.textContent = `Panel bloqueado. Espere ${m} minuto${m !== 1 ? 's' : ''}.`;
+      admError.style.display = 'block';
+      return;
+    }
+    const btn = document.getElementById('admSubmit');
+    btn.disabled = true; btn.textContent = 'Verificando…';
+
+    const hash = await admHash(admPw.value);
+    if (hash === ADMIN_HASH) {
+      admSetLock({ attempts:0, lockedUntil:0 });
+      localStorage.setItem(AUTH_KEY, Date.now().toString());
+      window.location.href = 'admin.html';
+    } else {
+      const attempts = lock.attempts + 1;
+      const lockedUntil = attempts >= MAX_ATTEMPTS ? Date.now() + LOCK_DURATION : 0;
+      admSetLock({ attempts, lockedUntil });
+      const rem = MAX_ATTEMPTS - attempts;
+      admError.textContent = lockedUntil
+        ? 'Demasiados intentos. Panel bloqueado 15 min.'
+        : `Contraseña incorrecta. ${rem} intento${rem !== 1 ? 's' : ''} restante${rem !== 1 ? 's' : ''}.`;
+      admError.style.display = 'block';
+      admPw.value = ''; admPw.focus();
+      btn.disabled = false; btn.textContent = 'Entrar al panel';
+    }
+  }
+
+  function admLogout() {
+    localStorage.removeItem(AUTH_KEY);
+    loginView.style.display   = '';
+    sessionView.style.display = 'none';
+    admError.style.display = 'none';
+    admPw.value = '';
+    setTimeout(() => admPw.focus(), 80);
+  }
+
+  // Update entry button icon based on session
+  function syncEntryBtn() {
+    entryBtn.textContent = admSessionValid() ? '⚿' : '⚿';
+    entryBtn.title = admSessionValid() ? 'Panel de administración (sesión activa)' : 'Gestión de contenidos';
+    entryBtn.classList.toggle('admin-entry-btn--active', admSessionValid());
+  }
+  syncEntryBtn();
+
+  entryBtn.addEventListener('click', openAdminModal);
+  document.getElementById('admClose').addEventListener('click', closeAdminModal);
+  document.getElementById('admClose2').addEventListener('click', closeAdminModal);
+  document.getElementById('admSubmit').addEventListener('click', admSubmit);
+  document.getElementById('admLogout').addEventListener('click', admLogout);
+  admPw.addEventListener('keydown', e => { if (e.key === 'Enter') admSubmit(); });
+
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeAdminModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('open')) closeAdminModal(); });
   </script>
 </body>
 </html>
