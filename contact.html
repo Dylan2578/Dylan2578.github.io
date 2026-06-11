@@ -89,10 +89,9 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-links">
-        <a href="#">Política de Privacidad</a>
-        <a href="#">Disclaimer</a>
-        <a href="#">Publicidad</a>
-        <a href="#">Términos de Servicio</a>
+        <a href="privacidad.html">Política de Privacidad</a>
+        <a href="disclaimer.html">Disclaimer</a>
+        <a href="terminos.html">Términos de Servicio</a>
       </div>
       <p class="footer-copy">&copy; 2026 Nomos &amp; Praxis. Todos los derechos reservados.</p>
     </div>
@@ -133,7 +132,7 @@
     });
   });
 
-  document.getElementById('contactForm').addEventListener('submit', function(e) {
+  document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const fields = this.querySelectorAll('input, textarea');
     let allValid = true;
@@ -144,12 +143,44 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando…';
 
-    setTimeout(() => {
-      this.style.display = 'none';
-      const msg = document.getElementById('form-success-msg');
-      msg.style.display = 'block';
-      msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 1400);
+    const formData = new FormData(this);
+
+    try {
+      const res = await fetch('https://formspree.io/f/xlgkpewd', {
+        method: 'POST',
+        body: formData,
+        headers: { Accept: 'application/json' }
+      });
+
+      if (res.ok) {
+        this.style.display = 'none';
+        const msg = document.getElementById('form-success-msg');
+        msg.style.display = 'block';
+        msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        const errMsg = (data.errors && data.errors.map(x => x.message).join(', ')) || 'Error al enviar. Inténtelo de nuevo.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar Solicitud';
+        const errEl = document.createElement('p');
+        errEl.style.cssText = 'color:#c0392b;font-size:0.8rem;margin-top:1rem;font-family:var(--font-ui);';
+        errEl.textContent = errMsg;
+        const existing = this.querySelector('.form-send-error');
+        if (existing) existing.remove();
+        errEl.className = 'form-send-error';
+        this.appendChild(errEl);
+      }
+    } catch {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar Solicitud';
+      const errEl = document.createElement('p');
+      errEl.style.cssText = 'color:#c0392b;font-size:0.8rem;margin-top:1rem;font-family:var(--font-ui);';
+      errEl.textContent = 'Error de red. Compruebe su conexión e inténtelo de nuevo.';
+      errEl.className = 'form-send-error';
+      const existing = this.querySelector('.form-send-error');
+      if (existing) existing.remove();
+      this.appendChild(errEl);
+    }
   });
   </script>
 </body>

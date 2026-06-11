@@ -51,6 +51,7 @@
 
       <div class="article-footer-nav">
         <a href="index.html" class="back-btn">← Volver al inicio</a>
+        <div class="article-nav-links" id="article-nav-links"></div>
       </div>
     </main>
 
@@ -74,9 +75,9 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-links">
-        <a href="#">Política de Privacidad</a>
-        <a href="#">Disclaimer</a>
-        <a href="#">Términos de Servicio</a>
+        <a href="privacidad.html">Política de Privacidad</a>
+        <a href="disclaimer.html">Disclaimer</a>
+        <a href="terminos.html">Términos de Servicio</a>
       </div>
       <p class="footer-copy">&copy; 2026 Nomos &amp; Praxis. Todos los derechos reservados.</p>
     </div>
@@ -198,6 +199,45 @@ function readingTime(content) {
     }, { passive: true });
   }
 
+  // ── Prev / Next article ───────────────────────────────────
+  function buildArticleNav(currentId, data) {
+    const navEl = document.getElementById('article-nav-links');
+    if (!navEl) return;
+
+    // Sort by date descending (same as index default)
+    const months = { enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11 };
+    function parseDate(str) {
+      const m = (str||'').match(/(\d+)\s+de\s+(\w+),?\s+(\d{4})/i);
+      if (!m) return new Date(0);
+      return new Date(+m[3], months[m[2].toLowerCase()] ?? 0, +m[1]);
+    }
+
+    const sorted = Object.entries(data).sort(([,a],[,b]) => parseDate(b.date) - parseDate(a.date));
+    const idx    = sorted.findIndex(([id]) => id === currentId);
+    if (idx === -1) return;
+
+    const prevEntry = sorted[idx + 1] || null; // older
+    const nextEntry = sorted[idx - 1] || null; // newer
+
+    navEl.innerHTML = '';
+    navEl.style.cssText = 'display:flex;gap:1rem;flex-wrap:wrap;';
+
+    if (prevEntry) {
+      const a = document.createElement('a');
+      a.href      = `articles.html?id=${prevEntry[0]}`;
+      a.className = 'article-nav-btn prev-btn';
+      a.innerHTML = `<span class="nav-direction">← Anterior</span><span class="nav-title">${prevEntry[1].title}</span>`;
+      navEl.appendChild(a);
+    }
+    if (nextEntry) {
+      const a = document.createElement('a');
+      a.href      = `articles.html?id=${nextEntry[0]}`;
+      a.className = 'article-nav-btn next-btn';
+      a.innerHTML = `<span class="nav-direction">Siguiente →</span><span class="nav-title">${nextEntry[1].title}</span>`;
+      navEl.appendChild(a);
+    }
+  }
+
   // ── Article loader ────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     const params    = new URLSearchParams(window.location.search);
@@ -238,6 +278,9 @@ function readingTime(content) {
           processFootnotes(contentEl);
 
         buildTOC(contentEl);
+
+        // ── Prev / Next navigation ────────────────────────────
+        buildArticleNav(articleId, data);
       })
       .catch(() => {
         document.getElementById('art-title').textContent   = 'Error al cargar';

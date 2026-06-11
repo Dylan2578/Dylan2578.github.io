@@ -211,6 +211,7 @@
         <span class="header-tagline">Panel de Administración — Nomos &amp; Praxis</span>
         <div class="header-utils">
           <a href="index.html" class="back-link">← Volver al sitio</a>
+          <button class="back-link" onclick="logoutAdmin()" style="background:none;border:none;cursor:pointer;font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:rgba(201,168,108,.5);" title="Cerrar sesión">⏻ Salir</button>
           <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">☽</button>
         </div>
       </div>
@@ -404,29 +405,109 @@
 
   <script>
   // ── CONFIG ────────────────────────────────────────────────────────────────
-  const ADMIN_PASSWORD = 'nomos2024';
+  // Password hash (SHA-256 of the admin password).
+  // To change the password, run in browser console:
+  //   crypto.subtle.digest('SHA-256', new TextEncoder().encode('tuNuevaContraseña'))
+  //     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+  // Then replace ADMIN_HASH below with the resulting hex string.
+  // Current password: nomos2024
+  const ADMIN_HASH     = 'b0df74369ca62f8fc1a5edaa3c6f95e0e2fe15afe6b36a62a3e1ad0c0d45e7f3';
   const STORAGE_KEY    = 'np_articles';
   const GH_CONFIG_KEY  = 'np_gh_config';
+  const AUTH_KEY       = 'np_auth_ts';
+  const LOCK_KEY       = 'np_lock';
+  const SESSION_TTL    = 4 * 60 * 60 * 1000; // 4 hours
+  const MAX_ATTEMPTS   = 5;
+  const LOCK_DURATION  = 15 * 60 * 1000;      // 15 minutes
 
   // ── STATE ─────────────────────────────────────────────────────────────────
   let articles = {};
   let editingId = null;
   let deleteTargetId = null;
 
+  // ── AUTH HELPERS ──────────────────────────────────────────────────────────
+  async function hashPassword(pw) {
+    const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+  }
+
+  function getLockState() {
+    try { return JSON.parse(localStorage.getItem(LOCK_KEY)) || { attempts: 0, lockedUntil: 0 }; }
+    catch { return { attempts: 0, lockedUntil: 0 }; }
+  }
+  function setLockState(s) { localStorage.setItem(LOCK_KEY, JSON.stringify(s)); }
+
+  function isSessionValid() {
+    const ts = parseInt(localStorage.getItem(AUTH_KEY) || '0', 10);
+    return ts && (Date.now() - ts < SESSION_TTL);
+  }
+
   // ── LOGIN ─────────────────────────────────────────────────────────────────
-  function attemptLogin() {
-    const pw = document.getElementById('loginPassword').value;
-    if (pw === ADMIN_PASSWORD) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('adminPanel').style.display  = 'block';
-      loadArticles();
-      updateGhStatusUI();
+  async function attemptLogin() {
+    const lock = getLockState();
+
+    // Check lockout
+    if (lock.lockedUntil && Date.now() < lock.lockedUntil) {
+      const mins = Math.ceil((lock.lockedUntil - Date.now()) / 60000);
+      showLoginError(`Demasiados intentos fallidos. Espere ${mins} minuto${mins !== 1 ? 's' : ''}.`);
+      return;
+    }
+
+    const pw   = document.getElementById('loginPassword').value;
+    const hash = await hashPassword(pw);
+
+    if (hash === ADMIN_HASH) {
+      setLockState({ attempts: 0, lockedUntil: 0 });
+      localStorage.setItem(AUTH_KEY, Date.now().toString());
+      showAdminPanel();
     } else {
-      document.getElementById('loginError').style.display = 'block';
+      const attempts = lock.attempts + 1;
+      const lockedUntil = attempts >= MAX_ATTEMPTS ? Date.now() + LOCK_DURATION : 0;
+      setLockState({ attempts, lockedUntil });
+      const remaining = MAX_ATTEMPTS - attempts;
+      if (lockedUntil) {
+        showLoginError(`Demasiados intentos. Panel bloqueado durante 15 minutos.`);
+      } else {
+        showLoginError(`Contraseña incorrecta. ${remaining} intento${remaining !== 1 ? 's' : ''} restante${remaining !== 1 ? 's' : ''}.`);
+      }
       document.getElementById('loginPassword').value = '';
       document.getElementById('loginPassword').focus();
     }
   }
+
+  function showLoginError(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function showAdminPanel() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminPanel').style.display  = 'block';
+    loadArticles();
+    updateGhStatusUI();
+  }
+
+  // Auto-restore session if still valid
+  if (isSessionValid()) {
+    showAdminPanel();
+  } else {
+    // Show remaining lockout time if locked
+    const lock = getLockState();
+    if (lock.lockedUntil && Date.now() < lock.lockedUntil) {
+      const mins = Math.ceil((lock.lockedUntil - Date.now()) / 60000);
+      showLoginError(`Panel bloqueado. Espere ${mins} minuto${mins !== 1 ? 's' : ''}.`);
+    }
+  }
+
+  function logoutAdmin() {
+    localStorage.removeItem(AUTH_KEY);
+    document.getElementById('adminPanel').style.display  = 'none';
+    document.getElementById('loginScreen').style.display = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').style.display = 'none';
+  }
+
   document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
 
   // ── LOCAL STORAGE ─────────────────────────────────────────────────────────
