@@ -14,7 +14,7 @@
 const fs   = require('fs');
 const path = require('path');
 
-const BASE_URL   = process.argv[2] || 'https://nomosypraxis.es';
+const BASE_URL   = process.argv[2] || 'https://dylan2578.github.io';
 const ARTICLES   = path.join(__dirname, 'articles.json');
 const OUTPUT     = path.join(__dirname, 'sitemap.xml');
 
