@@ -361,6 +361,16 @@ html { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
   letter-spacing: 0.3px;
 }
 
+.post-author {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  align-items: baseline;
+  display: inline-flex;
+  gap: 0.3rem;
+}
+.post-author::before { content: '·'; color: var(--border-dark); }
+
 /* Reading time badge */
 .read-time {
   font-family: var(--font-ui);
@@ -371,7 +381,6 @@ html { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
   gap: 0.3rem;
 }
 .read-time::before { content: '·'; color: var(--border-dark); }
-
 
 .post-title {
   font-family: var(--font-display);

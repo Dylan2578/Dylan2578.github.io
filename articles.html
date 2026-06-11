@@ -30,7 +30,6 @@
       <nav class="main-nav">
         <a href="index.html" class="nav-link">Inicio</a>
         <a href="about.html" class="nav-link">Sobre el Proyecto</a>
-        <a href="practice-areas.html" class="nav-link">Áreas de Práctica</a>
         <a href="contact.html" class="nav-link">Contacto</a>
       </nav>
     </div>
@@ -42,9 +41,9 @@
         <span id="art-category" class="article-badge">Cargando…</span>
         <h1 id="art-title">Cargando artículo…</h1>
         <div class="article-meta">
-          <span>📅 <span id="art-date">—</span></span>
-          <span>✍ <span id="art-authors">—</span></span>
-          <span id="art-readtime">—</span>
+          <span>📆<span id="art-date">—</span></span>
+          <span>🖋️<span id="art-author">—</span></span>
+          <span id="art-readtime">—</span>  
         </div>
       </header>
 
@@ -63,7 +62,6 @@
       <div class="widget">
         <h3 class="widget-title">Recursos</h3>
         <ul class="widget-list">
-          <li><a href="practice-areas.html">Áreas de práctica →</a></li>
           <li><a href="contact.html">Solicitar consulta →</a></li>
           <li><a href="index.html">Ver más artículos →</a></li>
         </ul>
@@ -182,7 +180,7 @@
         document.getElementById('art-date').textContent     = article.date;
         document.getElementById('art-category').textContent = article.category;
         document.getElementById('art-readtime').textContent = readingTime(article.content);
-        document.getElementById('art-authors').textContent  = article.author || '';
+        document.getElementById('art-author').textContent  = article.author || '';
         document.title = `Nomos & Praxis | ${article.title}`;
 
         const contentEl  = document.getElementById('art-content');
