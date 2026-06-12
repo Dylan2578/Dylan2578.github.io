@@ -733,6 +733,7 @@ html { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
   line-height: 1.65;
   color: var(--text-main);
   max-width: 68ch;
+  text-align: justify;
 }
 
 .article-body p {
@@ -767,6 +768,16 @@ html { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
   margin: 2.4rem 0 0.9rem;
   color: var(--text-main);
   letter-spacing: -0.1px;
+}
+
+.article.body h3::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 24px;
+  height: 2px;
+  background: var(--gold);
 }
 
 .article-body blockquote {
