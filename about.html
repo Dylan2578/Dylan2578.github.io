@@ -91,13 +91,15 @@
   <script>
     // Theme toggle
   const html = document.documentElement;
-  const btn  = document.getElementById('themeToggle');
-  const s    = localStorage.getItem('np-theme') || 'light';
-  html.dataset.theme = s; btn.textContent = s === 'dark' ? '☀' : '☽';
-  btn.addEventListener('click', () => {
-    const n = html.dataset.theme === 'dark' ? 'light' : 'dark';
-    html.dataset.theme = n; localStorage.setItem('np-theme', n);
-    btn.textContent = n === 'dark' ? '☀' : '☽';
+  const themeBtn = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('np-theme') || 'light';
+  html.dataset.theme = saved;
+  themeBtn.textContent = saved === 'dark' ? '☀' : '☽';
+  themeBtn.addEventListener('click', () => {
+    const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    html.dataset.theme = next;
+    localStorage.setItem('np-theme', next);
+    themeBtn.textContent = next === 'dark' ? '☀' : '☽';
   });
 
   // Back to top
