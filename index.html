@@ -34,6 +34,37 @@
     </div>
   </header>
 
+  <!-- Featured article banner -->
+  <div class="featured-banner" id="featured-banner" style="display:none;">
+    <div class="container">
+      <div class="featured-inner">
+        <div class="featured-label">Análisis destacado</div>
+        <h2 class="featured-title" id="featured-title"></h2>
+        <div class="featured-meta">
+          <span class="featured-category" id="featured-category"></span>
+          <span class="featured-date" id="featured-date"></span>
+          <span class="featured-author" id="featured-author"></span>
+        </div>
+        <p class="featured-excerpt" id="featured-excerpt"></p>
+        <a class="featured-cta" id="featured-link" href="#">Leer análisis completo →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice area strip -->
+  <div class="practice-strip">
+    <div class="container practice-strip-inner">
+      <span class="practice-strip-label">Áreas</span>
+      <a href="#" class="practice-pill active-pill" data-category="">Todas</a>
+      <a href="#" class="practice-pill" data-category="Derecho Civil y Mercantil">Civil y Mercantil</a>
+      <a href="#" class="practice-pill" data-category="Derecho Digital y Tecnología">Digital y Tecnología</a>
+      <a href="#" class="practice-pill" data-category="Derecho Financiero y Tributario">Financiero y Tributario</a>
+      <a href="#" class="practice-pill" data-category="Derecho Laboral">Laboral</a>
+      <a href="#" class="practice-pill" data-category="Derecho de la Unión Europea">Unión Europea</a>
+      <a href="#" class="practice-pill" data-category="Derecho Constitucional y Administrativo">Constitucional y Adm.</a>
+    </div>
+  </div>
+
   <main class="container main-wrapper">
     <section class="feed">
       <div class="feed-heading">
@@ -96,12 +127,36 @@
 
   <footer class="site-footer">
     <div class="container">
-      <div class="footer-links">
-        <a href="privacidad.html">Política de Privacidad</a>
-        <a href="disclaimer.html">Disclaimer</a>
-        <a href="terminos.html">Términos de Servicio</a>
+      <div class="footer-grid">
+        <div class="footer-col footer-col--brand">
+          <span class="footer-brand-name">Nomos &amp; Praxis</span>
+          <p class="footer-brand-desc">Revista independiente de pensamiento jurídico, análisis doctrinal y estudios críticos de derecho. Rigor académico al servicio de la práctica.</p>
+        </div>
+        <div class="footer-col">
+          <span class="footer-col-title">Áreas de análisis</span>
+          <ul class="footer-col-list">
+            <li><a href="#" onclick="event.preventDefault();document.querySelector('.practice-pill[data-category=\'Derecho Civil y Mercantil\']').click()">Civil y Mercantil</a></li>
+            <li><a href="#" onclick="event.preventDefault();document.querySelector('.practice-pill[data-category=\'Derecho Digital y Tecnología\']').click()">Digital y Tecnología</a></li>
+            <li><a href="#" onclick="event.preventDefault();document.querySelector('.practice-pill[data-category=\'Derecho Financiero y Tributario\']').click()">Financiero y Tributario</a></li>
+            <li><a href="#" onclick="event.preventDefault();document.querySelector('.practice-pill[data-category=\'Derecho Laboral\']').click()">Laboral</a></li>
+            <li><a href="#" onclick="event.preventDefault();document.querySelector('.practice-pill[data-category=\'Derecho de la Unión Europea\']').click()">Unión Europea</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <span class="footer-col-title">Publicación</span>
+          <ul class="footer-col-list">
+            <li><a href="about.html">Sobre el proyecto</a></li>
+            <li><a href="contact.html">Contacto y colaboraciones</a></li>
+            <li><a href="privacidad.html">Política de Privacidad</a></li>
+            <li><a href="disclaimer.html">Disclaimer</a></li>
+            <li><a href="terminos.html">Términos de Servicio</a></li>
+          </ul>
+        </div>
       </div>
-      <p class="footer-copy">&copy; 2026 Nomos & Praxis. Todos los derechos reservados. | Publicación de Investigación y Doctrina</p>
+      <div class="footer-bottom">
+        <p class="footer-copy">&copy; 2026 Nomos &amp; Praxis. Todos los derechos reservados.</p>
+        <p class="footer-copy footer-copy--right">Publicación de investigación y doctrina jurídica</p>
+      </div>
     </div>
   </footer>
 
@@ -241,16 +296,19 @@
       const el      = document.createElement('article');
       el.className  = 'legal-post';
       el.style.animationDelay = `${i * 0.08}s`;
+      const tagsHtml = (art.tags && art.tags.length)
+        ? `<div class="post-tags">${art.tags.map(t => `<span class="post-tag">${t}</span>`).join('')}</div>`
+        : '';
       el.innerHTML = `
         <div class="post-header">
           <span class="category-badge">${art.category}</span>
           <span class="post-date">${art.date}</span>
           <span class="post-author">${art.author}</span>
           <span class="read-time">${rt} lectura</span>
-
         </div>
         <h2 class="post-title"><a href="articles.html?id=${id}">${art.title}</a></h2>
         <p class="post-excerpt">${excerpt}</p>
+        ${tagsHtml}
         <a href="articles.html?id=${id}" class="read-more">Leer análisis completo</a>
       `;
       container.appendChild(el);
@@ -388,12 +446,55 @@
     }
   });
 
+  // Practice strip pills — sync with sidebar filters
+  document.querySelectorAll('.practice-pill').forEach(pill => {
+    pill.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.practice-pill').forEach(p => p.classList.remove('active-pill'));
+      pill.classList.add('active-pill');
+      // Trigger category filter
+      const cat = pill.dataset.category;
+      document.querySelectorAll('.filter-category').forEach(l => l.classList.remove('active-filter'));
+      const sidebarLink = document.querySelector(`.filter-category[data-category="${cat}"]`);
+      if (sidebarLink) sidebarLink.classList.add('active-filter');
+      activeCategory = cat;
+      searchInput.value = '';
+      applyFilters();
+      window.scrollTo({ top: document.querySelector('.practice-strip').offsetTop - 60, behavior: 'smooth' });
+    });
+  });
+
+  // Sync sidebar category clicks back to practice strip
+  document.querySelectorAll('.filter-category').forEach(link => {
+    link.addEventListener('click', () => {
+      const cat = link.dataset.category;
+      document.querySelectorAll('.practice-pill').forEach(p => {
+        p.classList.toggle('active-pill', p.dataset.category === cat);
+      });
+    });
+  });
+
   // Init
   fetch('articles.json')
     .then(r => r.json())
     .then(data => {
       allArticles = Object.entries(data);
       updateCategoryCounts(allArticles);
+
+      // Featured article — most recent
+      const sorted = Object.entries(data).sort(([,a],[,b]) => parseDate(b.date) - parseDate(a.date));
+      if (sorted.length) {
+        const [featId, feat] = sorted[0];
+        const clean = feat.content.replace(/<[^>]*>/g, '');
+        const excerpt = clean.length > 280 ? clean.slice(0, 280) + '…' : clean;
+        document.getElementById('featured-title').textContent = feat.title;
+        document.getElementById('featured-category').textContent = feat.category;
+        document.getElementById('featured-date').textContent = feat.date;
+        document.getElementById('featured-author').textContent = feat.author || '';
+        document.getElementById('featured-excerpt').textContent = excerpt;
+        document.getElementById('featured-link').href = `articles.html?id=${featId}`;
+        document.getElementById('featured-banner').style.display = '';
+      }
 
       const hashState = getStateFromHash();
       if (Object.keys(hashState).length > 0) {
